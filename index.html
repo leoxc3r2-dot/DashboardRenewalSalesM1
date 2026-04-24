@@ -2,98 +2,177 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard MoradaUno</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Corporativo | MoradaUno</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.12.7/Recharts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;900&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Figtree', sans-serif; background: #F8F6F9; }</style>
+    <style>
+        :root {
+            --morada-purple: #671E75;
+            --morada-teal: #00C7B1;
+            --morada-lavender: #F8F6F9;
+            --morada-dark: #12051A;
+        }
+        body { 
+            font-family: 'Figtree', sans-serif; 
+            background-color: var(--morada-lavender);
+            color: var(--morada-dark);
+        }
+        .card-morada {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid rgba(103, 30, 117, 0.05);
+            box-shadow: 0 10px 15px -3px rgba(103, 30, 117, 0.04);
+        }
+        .gradient-morada {
+            background: linear-gradient(135deg, #671E75 0%, #8E2B9E 100%);
+        }
+    </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        function App() {
-            const [data, setData] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
+        const { useState, useEffect, useMemo } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
-            // Accedemos a las gráficas de forma segura
-            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.Recharts;
+        const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
 
-            React.useEffect(() => {
-                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
-                
-                Papa.parse(url, {
+        const App = () => {
+            const [data, setData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [activeMonth, setActiveMonth] = useState("");
+
+            useEffect(() => {
+                Papa.parse(GOOGLE_SHEET_URL, {
                     download: true,
                     header: true,
-                    complete: (results) => {
-                        const clean = results.data
-                            .filter(r => r.QMesEquipo)
-                            .map(row => ({
-                                mes: row.QMesEquipo,
-                                monse: parseFloat(row["Monse cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
-                                jess: parseFloat(row["Jess cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
-                                marla: parseFloat(row["Marla cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
-                            }));
+                    complete: (res) => {
+                        const clean = res.data.filter(r => r.QMesEquipo).map(row => {
+                            const num = (v) => parseFloat(v?.replace(/[^0-9.-]+/g, "") || 0);
+                            return {
+                                name: row.QMesEquipo,
+                                total: num(row.CantadoEquipo),
+                                meta: num(row["Meta RevenueEquipo"]),
+                                monse: num(row["Monse cantado"]),
+                                jess: num(row["Jess cantado"]),
+                                marla: num(row["Marla cantado"]),
+                                recuperado: num(row["Recuperado del MesEquipo"])
+                            };
+                        });
                         setData(clean);
+                        if(clean.length > 0) setActiveMonth(clean[clean.length-1].name);
                         setLoading(false);
                     }
                 });
             }, []);
 
+            const current = useMemo(() => data.find(d => d.name === activeMonth) || {}, [data, activeMonth]);
+
             if (loading) return (
-                <div className="flex h-screen items-center justify-center">
-                    <div className="text-xl font-black text-[#671E75] animate-bounce">CARGANDO MORADAUNO...</div>
+                <div className="h-screen flex flex-col items-center justify-center">
+                    <div className="w-12 h-12 border-4 border-[#00C7B1] border-t-[#671E75] rounded-full animate-spin mb-4"></div>
+                    <p className="font-black text-[#671E75] tracking-widest text-sm">CARGANDO MORADAUNO...</p>
                 </div>
             );
-
-            const actual = data[data.length - 1] || {monse:0, jess:0, marla:0};
 
             return (
-                <div className="p-4 md:p-10 max-w-5xl mx-auto">
-                    <header className="mb-10 text-center md:text-left">
-                        <h1 className="text-4xl font-black text-[#671E75]">Dashboard Comercial</h1>
-                        <p className="text-[#00C7B1] font-bold tracking-widest">REAL-TIME DATA</p>
-                    </header>
-                    
+                <div className="max-w-6xl mx-auto px-4 py-8">
+                    {/* Header Institucional */}
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
+                        <div>
+                            <h1 className="text-4xl font-[900] text-[#671E75] tracking-tight">Ventas <span className="text-[#00C7B1]">Comercial</span></h1>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="h-2 w-2 bg-[#00C7B1] rounded-full animate-pulse"></span>
+                                <p className="text-slate-500 font-semibold text-sm uppercase tracking-wider">Dashboard en tiempo real</p>
+                            </div>
+                        </div>
+                        
+                        <select 
+                            value={activeMonth}
+                            onChange={(e) => setActiveMonth(e.target.value)}
+                            className="bg-white border-2 border-purple-100 rounded-2xl px-6 py-3 font-bold text-[#671E75] shadow-sm outline-none focus:border-[#00C7B1] transition-all"
+                        >
+                            {data.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
+                        </select>
+                    </div>
+
+                    {/* KPIs Principales */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                        <div className="bg-white p-8 rounded-[30px] shadow-lg border-b-8 border-[#671E75]">
-                            <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Montserrat</p>
-                            <h2 className="text-3xl font-black text-[#671E75]">${actual.monse.toLocaleString()}</h2>
+                        <div className="card-morada p-8 gradient-morada text-white">
+                            <p className="text-[11px] font-black opacity-80 uppercase tracking-[2px] mb-2">Cantado Equipo</p>
+                            <h2 className="text-3xl font-[900]">${current.total?.toLocaleString()}</h2>
                         </div>
-                        <div className="bg-white p-8 rounded-[30px] shadow-lg border-b-8 border-[#00C7B1]">
-                            <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Jessica</p>
-                            <h2 className="text-3xl font-black text-[#00C7B1]">${actual.jess.toLocaleString()}</h2>
+                        <div className="card-morada p-8 border-l-8 border-l-[#00C7B1]">
+                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[2px] mb-2">Meta Mensual</p>
+                            <h2 className="text-3xl font-[900] text-[#12051A]">${current.meta?.toLocaleString()}</h2>
                         </div>
-                        <div className="bg-white p-8 rounded-[30px] shadow-lg border-b-8 border-purple-400">
-                            <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Marla</p>
-                            <h2 className="text-3xl font-black text-purple-500">${actual.marla.toLocaleString()}</h2>
+                        <div className="card-morada p-8 border-l-8 border-l-purple-300">
+                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[2px] mb-2">Recuperado</p>
+                            <h2 className="text-3xl font-[900] text-[#671E75]">${current.recuperado?.toLocaleString()}</h2>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 md:p-10 rounded-[40px] shadow-2xl h-[450px]">
-                        <h3 className="font-black text-[#671E75] mb-6 uppercase text-sm">Comparativo por Mes</h3>
-                        <ResponsiveContainer width="100%" height="90%">
-                            <BarChart data={data}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#671E75', fontWeight: 'bold', fontSize: 12}} />
-                                <YAxis hide />
-                                <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius:'20px', border:'none'}} />
-                                <Bar dataKey="monse" name="Monse" fill="#671E75" radius={[10, 10, 0, 0]} />
-                                <Bar dataKey="jess" name="Jess" fill="#00C7B1" radius={[10, 10, 0, 0]} />
-                                <Bar dataKey="marla" name="Marla" fill="#B14EB5" radius={[10, 10, 0, 0]} />
-                            </BarChart>
-                        </ResponsiveContainer>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Gráfica de Tendencia */}
+                        <div className="lg:col-span-2 card-morada p-8">
+                            <h3 className="font-[900] text-[#671E75] mb-8 uppercase text-xs tracking-widest">Tendencia de Ingresos</h3>
+                            <div className="h-[350px]">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0E6F0" />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#671E75', fontWeight: 'bold', fontSize: 11}} />
+                                        <YAxis hide />
+                                        <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.1)'}} />
+                                        <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                                            {data.map((entry, index) => (
+                                                <Cell key={index} fill={entry.name === activeMonth ? '#671E75' : '#E5D5E5'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            </div>
+                        </div>
+
+                        {/* Market Share de Asesoras */}
+                        <div className="card-morada p-8 flex flex-col items-center">
+                            <h3 className="font-[900] text-[#671E75] mb-6 uppercase text-xs tracking-widest w-full text-left">Mix de Ventas</h3>
+                            <div className="h-[250px] w-full">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie 
+                                            data={[
+                                                { name: 'Monse', value: current.monse },
+                                                { name: 'Jess', value: current.jess },
+                                                { name: 'Marla', value: current.marla }
+                                            ]} 
+                                            innerRadius={60} outerRadius={85} paddingAngle={5} dataKey="value"
+                                        >
+                                            <Cell fill="#671E75" />
+                                            <Cell fill="#00C7B1" />
+                                            <Cell fill="#C084FC" />
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="space-y-3 w-full mt-4">
+                                <div className="flex justify-between text-xs font-bold"><span className="text-[#671E75]">● Monse</span> <span>${current.monse?.toLocaleString()}</span></div>
+                                <div className="flex justify-between text-xs font-bold"><span className="text-[#00C7B1]">● Jess</span> <span>${current.jess?.toLocaleString()}</span></div>
+                                <div className="flex justify-between text-xs font-bold"><span className="text-purple-400">● Marla</span> <span>${current.marla?.toLocaleString()}</span></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
-        }
+        };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
