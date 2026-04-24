@@ -3,157 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MoradaUno</title>
-    
+    <title>MoradaUno Renewal</title>
     <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.5/babel.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.3/lib/Recharts.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
-        body { background-color: #F8F6F9; font-family: sans-serif; }
-        .loading-screen { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        body { background-color: #FDFBFF; font-family: sans-serif; }
+        .card-m { background: white; border-radius: 1.5rem; box-shadow: 0 4px 20px rgba(103, 30, 117, 0.05); }
     </style>
 </head>
 <body>
-    <div id="root">
-        <div class="loading-screen">
-            <h1 style="color: #671E75; font-weight: bold;">INICIALIZANDO DASHBOARD...</h1>
-            <p>Si esta pantalla no desaparece, presiona Ctrl+F5</p>
-        </div>
-    </div>
+    <div id="root"></div>
 
     <script type="text/babel">
-        // Forzamos a que el código espere a que TODO esté cargado
-        window.onload = () => {
-            const { useState, useEffect } = React;
-            const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
+        const { useState, useEffect } = React;
+        const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
-            const App = () => {
-                const [data, setData] = useState([]);
-                const [loading, setLoading] = useState(true);
-                const [error, setError] = useState(null);
-                const [activeMonth, setActiveMonth] = useState("");
+        const App = () => {
+            const [data, setData] = useState([]);
+            const [activeMonth, setActiveMonth] = useState("");
+            const [loading, setLoading] = useState(true);
 
-                useEffect(() => {
-                    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
-                    
-                    Papa.parse(url, {
-                        download: true,
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                            try {
-                                const formatted = results.data
-                                    .filter(row => row.QMesEquipo)
-                                    .map(row => {
-                                        const cleanNum = (val) => {
-                                            if (!val) return 0;
-                                            return parseFloat(val.replace(/[^0-9.-]+/g, "")) || 0;
-                                        };
-                                        return {
-                                            mes: row.QMesEquipo,
-                                            cantado: cleanNum(row.CantadoEquipo),
-                                            meta: cleanNum(row["Meta RevenueEquipo"]),
-                                            alcance: cleanNum(row["Alcance mesEquipo"]),
-                                            monse: cleanNum(row["cantadoMonse"]),
-                                            jess: cleanNum(row["cantadoJess"]),
-                                            marla: cleanNum(row["cantadoMarla"])
-                                        };
-                                    });
-                                
-                                if (formatted.length === 0) throw new Error("No se encontraron datos en el Excel");
-                                
-                                setData(formatted);
-                                setActiveMonth(formatted[formatted.length - 1].mes);
-                                setLoading(false);
-                            } catch (err) {
-                                setError(err.message);
-                                setLoading(false);
-                            }
-                        },
-                        error: (err) => {
-                            setError("Error al conectar con Google Sheets");
-                            setLoading(false);
+            useEffect(() => {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
+                
+                Papa.parse(url, {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        console.log("Datos recibidos:", results.data); // Para debug en consola
+                        
+                        const formatted = results.data
+                            .filter(row => row.QMesEquipo || row["QMesEquipo"])
+                            .map(row => {
+                                const n = (v) => v ? parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0 : 0;
+                                return {
+                                    mes: row.QMesEquipo || row["QMesEquipo"],
+                                    cantado: n(row.CantadoEquipo || row["CantadoEquipo"]),
+                                    meta: n(row["Meta RevenueEquipo"] || row.MetaRevenueEquipo),
+                                    alcance: n(row["Alcance mesEquipo"] || row.AlcanceMesEquipo),
+                                    monse: n(row["cantadoMonse"] || row.cantadoMonse),
+                                    jess: n(row["cantadoJess"] || row.cantadoJess),
+                                    marla: n(row["cantadoMarla"] || row.cantadoMarla)
+                                };
+                            });
+
+                        if (formatted.length > 0) {
+                            setData(formatted);
+                            setActiveMonth(formatted[formatted.length - 1].mes);
                         }
-                    });
-                }, []);
+                        setLoading(false);
+                    }
+                });
+            }, []);
 
-                if (loading) return <div className="loading-screen"><h2 className="text-purple-700 font-bold animate-pulse">CARGANDO DATOS...</h2></div>;
-                if (error) return <div className="loading-screen text-red-600 font-bold">ERROR: {error}</div>;
+            if (loading) return <div className="h-screen flex items-center justify-center text-purple-800 font-bold">CARGANDO DATOS...</div>;
+            if (data.length === 0) return <div className="h-screen flex flex-col items-center justify-center text-center p-10">
+                <h1 className="text-red-500 font-bold text-xl mb-4">Error de Conexión</h1>
+                <p className="text-gray-600 max-w-md">No pudimos leer los datos. Asegúrate de que el Google Sheets esté publicado como <b>CSV</b>.</p>
+            </div>;
 
-                const current = data.find(d => d.mes === activeMonth) || {};
+            const current = data.find(d => d.mes === activeMonth) || data[0];
 
-                return (
-                    <div className="p-4 md:p-8 max-w-6xl mx-auto">
-                        <div className="bg-white p-6 rounded-3xl shadow-sm mb-6 flex justify-between items-center">
-                            <h1 className="text-2xl font-black text-purple-900">MoradaUno <span className="text-teal-500 italic">Renewal</span></h1>
-                            <select 
-                                value={activeMonth} 
-                                onChange={(e) => setActiveMonth(e.target.value)}
-                                className="bg-purple-50 border-none p-2 rounded-lg font-bold text-purple-700"
-                            >
-                                {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
-                            </select>
-                        </div>
+            return (
+                <div className="max-w-5xl mx-auto p-6">
+                    <div className="flex justify-between items-center mb-8">
+                        <h1 className="text-2xl font-black text-purple-900 italic">MORADA<span className="text-teal-500">UNO</span></h1>
+                        <select 
+                            value={activeMonth} 
+                            onChange={(e) => setActiveMonth(e.target.value)}
+                            className="bg-white border border-purple-100 p-2 rounded-xl font-bold text-purple-700 shadow-sm"
+                        >
+                            {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
+                        </select>
+                    </div>
 
-                        <div className={`p-10 rounded-[2.5rem] mb-6 text-white transition-all ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-purple-800'}`}>
-                            <p className="text-xs font-bold uppercase tracking-widest opacity-80">Cantado Equipo</p>
-                            <div className="flex justify-between items-end">
-                                <h2 className="text-6xl font-black">${current.cantado?.toLocaleString()}</h2>
-                                <div className="text-right">
-                                    <p className="text-4xl font-black">{current.alcance}%</p>
-                                    <p className="text-xs opacity-70">Meta: ${current.meta?.toLocaleString()}</p>
+                    <div className={`p-8 rounded-[2rem] mb-8 text-white shadow-lg transition-colors duration-500 ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-purple-800'}`}>
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">Total Cantado Equipo</p>
+                                <h2 className="text-6xl font-black tracking-tighter">${current.cantado?.toLocaleString()}</h2>
+                                <p className="mt-4 font-bold opacity-80">Meta: ${current.meta?.toLocaleString()}</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="bg-white/10 p-6 rounded-3xl backdrop-blur-md">
+                                    <p className="text-xs font-bold opacity-80 mb-1 uppercase text-center">Alcance</p>
+                                    <p className="text-5xl font-black">{current.alcance}%</p>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white p-6 rounded-3xl shadow-sm h-80">
-                                <h3 className="font-bold text-gray-400 text-xs uppercase mb-4">Performance</h3>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={data}>
-                                        <XAxis dataKey="mes" hide />
-                                        <Tooltip />
-                                        <Bar dataKey="cantado" radius={[5, 5, 0, 0]}>
-                                            {data.map((entry, index) => (
-                                                <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#E2E8F0'} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="card-m p-6 h-80">
+                            <h3 className="text-xs font-black text-gray-400 uppercase mb-6">Performance Mensual</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={data}>
+                                    <XAxis dataKey="mes" hide />
+                                    <Tooltip />
+                                    <Bar dataKey="cantado" radius={[6, 6, 0, 0]}>
+                                        {data.map((entry, index) => (
+                                            <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#E2E8F0'} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
 
-                            <div className="bg-white p-6 rounded-3xl shadow-sm h-80">
-                                <h3 className="font-bold text-gray-400 text-xs uppercase mb-4">Mix de Ventas</h3>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie 
-                                            data={[
-                                                { name: 'Monse', value: current.monse },
-                                                { name: 'Jess', value: current.jess },
-                                                { name: 'Marla', value: current.marla }
-                                            ]} 
-                                            dataKey="value" 
-                                            innerRadius={60} 
-                                            outerRadius={80}
-                                        >
-                                            <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                        <div className="card-m p-6 h-80">
+                            <h3 className="text-xs font-black text-gray-400 uppercase mb-6">Mix Vendedoras</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie 
+                                        data={[
+                                            { name: 'Monse', value: current.monse },
+                                            { name: 'Jess', value: current.jess },
+                                            { name: 'Marla', value: current.marla }
+                                        ]} 
+                                        dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={5}
+                                    >
+                                        <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="flex justify-around mt-2 text-[10px] font-bold uppercase tracking-tighter">
+                                <span className="text-purple-800">Monse</span>
+                                <span className="text-teal-600">Jess</span>
+                                <span className="text-purple-400">Marla</span>
                             </div>
                         </div>
                     </div>
-                );
-            };
-
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
+                </div>
+            );
         };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
