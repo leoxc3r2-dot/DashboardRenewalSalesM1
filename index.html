@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MoradaUno</title>
+    <title>MoradaUno Dashboard</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/recharts@2.10.3/lib/Recharts.js"></script>
@@ -11,11 +11,11 @@
     <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-50">
+<body class="bg-[#F8F6F9]">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
         const { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
         const App = () => {
@@ -29,16 +29,15 @@
                     header: true,
                     skipEmptyLines: true,
                     complete: (results) => {
-                        // Limpiamos y formateamos los datos del CSV
                         const formatted = results.data
                             .filter(row => row.QMesEquipo)
                             .map(row => ({
-                                mes: row.QMesEquipo,
-                                total: parseFloat(row.CantadoEquipo?.replace(/[^0-9.-]+/g, "")) || 0,
-                                alcance: parseFloat(row["Alcance mesEquipo"]?.replace(/[^0-9.-]+/g, "")) || 0,
-                                monse: parseFloat(row["Monse cantado"]?.replace(/[^0-9.-]+/g, "")) || 0,
-                                jess: parseFloat(row["Jess cantado"]?.replace(/[^0-9.-]+/g, "")) || 0,
-                                marla: parseFloat(row["Marla cantado"]?.replace(/[^0-9.-]+/g, "")) || 0
+                                mes: String(row.QMesEquipo).trim(),
+                                total: parseFloat(String(row.CantadoEquipo).replace(/[^0-9.-]+/g, "")) || 0,
+                                alcance: parseFloat(String(row["Alcance mesEquipo"]).replace(/[^0-9.-]+/g, "")) || 0,
+                                monse: parseFloat(String(row["Monse cantado"]).replace(/[^0-9.-]+/g, "")) || 0,
+                                jess: parseFloat(String(row["Jess cantado"]).replace(/[^0-9.-]+/g, "")) || 0,
+                                marla: parseFloat(String(row["Marla cantado"]).replace(/[^0-9.-]+/g, "")) || 0
                             }));
                         
                         if (formatted.length > 0) {
@@ -50,56 +49,60 @@
                 });
             }, []);
 
-            if (loading) return <div className="h-screen flex items-center justify-center font-bold text-purple-900">CARGANDO...</div>;
-            if (data.length === 0) return <div className="h-screen flex items-center justify-center text-red-500 font-bold text-center p-4">Error: No hay datos en el archivo datos.csv.<br/>Asegúrate de que las columnas se llamen exactamente como en tu Excel.</div>;
+            // Seguros de vida del código: Si no hay datos, no dibujamos nada
+            if (loading) return <div className="h-screen flex items-center justify-center font-bold text-[#671E75]">CONECTANDO DATOS LOCALES...</div>;
+            if (data.length === 0) return <div className="h-screen flex items-center justify-center text-red-500">Error: El archivo datos.csv está vacío o tiene nombres de columna distintos.</div>;
 
-            const current = data.find(d => d.mes === activeMonth) || data[0];
+            const current = data.find(d => d.mes === activeMonth) || data[data.length - 1];
+            
+            // Si por alguna razón 'current' sigue fallando, evitamos el renderizado
+            if (!current) return null;
 
             return (
-                <div className="max-w-4xl mx-auto p-4 md:p-10">
-                    <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
-                        <h1 className="text-xl font-black text-[#671E75] italic">MORADA<span className="text-teal-500">UNO</span></h1>
+                <div className="max-w-4xl mx-auto p-4 md:p-10 animate-in fade-in duration-500">
+                    <header className="flex justify-between items-center mb-6 bg-white p-5 rounded-[2rem] shadow-sm border border-purple-50">
+                        <h1 className="text-xl font-black text-[#671E75] italic tracking-tighter">MORADAUNO</h1>
                         <select 
                             value={activeMonth} 
                             onChange={(e) => setActiveMonth(e.target.value)}
-                            className="bg-slate-100 border-none font-bold p-2 rounded-xl text-slate-700 outline-none"
+                            className="bg-purple-50 border-none font-bold p-2 px-4 rounded-xl text-[#671E75] outline-none cursor-pointer"
                         >
                             {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
                         </select>
-                    </div>
+                    </header>
 
-                    {/* Card Principal con Seguros de Lectura */}
-                    <div className={`p-10 rounded-[2.5rem] mb-6 text-white shadow-lg transition-all ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
-                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Total Cantado Equipo</p>
+                    {/* Card Principal con validación de existencia */}
+                    <div className={`p-10 rounded-[2.5rem] mb-6 text-white shadow-xl transition-all duration-700 ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-2 italic">Total Cantado Equipo</p>
                         <div className="flex justify-between items-center">
-                            <h2 className="text-6xl font-black">${(current.total || 0).toLocaleString()}</h2>
-                            <div className="text-right bg-black/10 p-4 rounded-3xl">
+                            <h2 className="text-6xl font-black tracking-tighter">
+                                ${current.total ? current.total.toLocaleString() : '0'}
+                            </h2>
+                            <div className="text-right bg-black/10 p-5 rounded-[2rem] min-w-[120px]">
                                 <p className="text-4xl font-black">{current.alcance || 0}%</p>
                                 <p className="text-[10px] font-bold opacity-70 uppercase tracking-tighter">Alcance</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-80">
-                        {/* Histórico */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-purple-50 h-72">
                             <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Performance</h3>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={data}>
                                     <XAxis dataKey="mes" hide />
-                                    <Tooltip contentStyle={{borderRadius: '15px', border: 'none'}} />
-                                    <Bar dataKey="total">
+                                    <Tooltip contentStyle={{borderRadius: '15px', border: 'none', fontWeight: 'bold'}} />
+                                    <Bar dataKey="total" radius={[5, 5, 0, 0]}>
                                         {data.map((entry, index) => (
-                                            <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#CBD5E1'} />
+                                            <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#E2E8F0'} />
                                         ))}
                                     </Bar>
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
 
-                        {/* Mix de Ventas */}
-                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
-                            <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Mix Equipo</h3>
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-purple-50 h-72 flex flex-col items-center">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest w-full text-left">Mix Equipo</h3>
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie 
@@ -110,7 +113,7 @@
                                         ]} 
                                         dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={5}
                                     >
-                                        <Cell fill="#671E75" /><Cell fill="#14B8A6" /><Cell fill="#A855F7" />
+                                        <Cell fill="#671E75" /><Cell fill="#0D9488" /><Cell fill="#A855F7" />
                                     </Pie>
                                     <Tooltip />
                                 </PieChart>
