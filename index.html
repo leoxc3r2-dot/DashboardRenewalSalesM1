@@ -4,149 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard MoradaUno</title>
-    
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
     <script src="https://unpkg.com/recharts@2.10.3/lib/Recharts.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50">
-    <div id="root">
-        <div class="flex items-center justify-center h-screen">
-            <div class="text-center">
-                <p class="text-[#671E75] font-black text-xl animate-bounce">VERIFICANDO COMPONENTES...</p>
-                <p class="text-gray-400 text-sm">Si esto tarda mucho, revisa que 'datos.csv' esté en la misma carpeta.</p>
-            </div>
-        </div>
-    </div>
+    <div id="root"></div>
 
     <script type="text/babel">
-        // Función para esperar a que Recharts esté disponible
-        const startApp = () => {
-            if (!window.Recharts) {
-                setTimeout(startApp, 100);
-                return;
-            }
+        const { useState, useEffect } = React;
+        const { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
-            const { useState, useEffect } = React;
-            const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
+        const App = () => {
+            const [data, setData] = useState([]);
+            const [activeMonth, setActiveMonth] = useState("");
+            const [loading, setLoading] = useState(true);
 
-            const App = () => {
-                const [data, setData] = useState([]);
-                const [activeMonth, setActiveMonth] = useState("");
-                const [loading, setLoading] = useState(true);
-
-                useEffect(() => {
-                    Papa.parse("datos.csv", {
-                        download: true,
-                        header: true,
-                        skipEmptyLines: true,
-                        complete: (results) => {
-                            const formatted = results.data
-                                .filter(row => row.QMesEquipo)
-                                .map(row => {
-                                    const n = (v) => v ? parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0 : 0;
-                                    return {
-                                        mes: row.QMesEquipo,
-                                        total: n(row.CantadoEquipo),
-                                        alcance: n(row["Alcance mesEquipo"]),
-                                        monse: n(row["Monse cantado"] || row.cantadoMonse),
-                                        jess: n(row["Jess cantado"] || row.cantadoJess),
-                                        marla: n(row["Marla cantado"] || row.cantadoMarla)
-                                    };
-                                });
-                            
-                            if (formatted.length > 0) {
-                                setData(formatted);
-                                setActiveMonth(formatted[formatted.length - 1].mes);
-                            }
-                            setLoading(false);
+            useEffect(() => {
+                Papa.parse("datos.csv", {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        // Limpiamos y formateamos los datos del CSV
+                        const formatted = results.data
+                            .filter(row => row.QMesEquipo)
+                            .map(row => ({
+                                mes: row.QMesEquipo,
+                                total: parseFloat(row.CantadoEquipo?.replace(/[^0-9.-]+/g, "")) || 0,
+                                alcance: parseFloat(row["Alcance mesEquipo"]?.replace(/[^0-9.-]+/g, "")) || 0,
+                                monse: parseFloat(row["Monse cantado"]?.replace(/[^0-9.-]+/g, "")) || 0,
+                                jess: parseFloat(row["Jess cantado"]?.replace(/[^0-9.-]+/g, "")) || 0,
+                                marla: parseFloat(row["Marla cantado"]?.replace(/[^0-9.-]+/g, "")) || 0
+                            }));
+                        
+                        if (formatted.length > 0) {
+                            setData(formatted);
+                            setActiveMonth(formatted[formatted.length - 1].mes);
                         }
-                    });
-                }, []);
+                        setLoading(false);
+                    }
+                });
+            }, []);
 
-                if (loading) return null;
+            if (loading) return <div className="h-screen flex items-center justify-center font-bold text-purple-900">CARGANDO...</div>;
+            if (data.length === 0) return <div className="h-screen flex items-center justify-center text-red-500 font-bold text-center p-4">Error: No hay datos en el archivo datos.csv.<br/>Asegúrate de que las columnas se llamen exactamente como en tu Excel.</div>;
 
-                // PROTECCIÓN: Si current no existe, usamos valores vacíos para que no de error
-                const current = data.find(d => d.mes === activeMonth) || { total: 0, alcance: 0, monse: 0, jess: 0, marla: 0 };
+            const current = data.find(d => d.mes === activeMonth) || data[0];
 
-                return (
-                    <div className="max-w-5xl mx-auto p-6 animate-in fade-in duration-700">
-                        <header className="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-purple-50">
-                            <h1 className="text-2xl font-black text-[#671E75] italic tracking-tighter">MORADAUNO</h1>
-                            <select 
-                                value={activeMonth} 
-                                onChange={(e) => setActiveMonth(e.target.value)}
-                                className="bg-purple-50 border-none font-bold px-4 py-2 rounded-xl text-[#671E75] focus:ring-2 focus:ring-purple-200 outline-none"
-                            >
-                                {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
-                            </select>
-                        </header>
+            return (
+                <div className="max-w-4xl mx-auto p-4 md:p-10">
+                    <div className="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+                        <h1 className="text-xl font-black text-[#671E75] italic">MORADA<span className="text-teal-500">UNO</span></h1>
+                        <select 
+                            value={activeMonth} 
+                            onChange={(e) => setActiveMonth(e.target.value)}
+                            className="bg-slate-100 border-none font-bold p-2 rounded-xl text-slate-700 outline-none"
+                        >
+                            {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
+                        </select>
+                    </div>
 
-                        <div className={`p-10 rounded-[2.5rem] mb-8 text-white shadow-xl transition-all duration-500 ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
-                            <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Cantado Equipo</p>
-                            <div className="flex justify-between items-end">
-                                <h2 className="text-6xl font-black tracking-tighter">${(current.total || 0).toLocaleString()}</h2>
-                                <div className="text-right">
-                                    <p className="text-5xl font-black">{current.alcance || 0}%</p>
-                                    <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest">Alcance</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-800">
-                            <div className="bg-white p-8 rounded-[2rem] shadow-sm h-80 border border-purple-50">
-                                <h3 className="text-[10px] font-black text-gray-400 uppercase mb-6 tracking-widest">Performance Mensual</h3>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={data}>
-                                        <XAxis dataKey="mes" hide />
-                                        <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius: '15px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
-                                        <Bar dataKey="total" radius={[8, 8, 0, 0]}>
-                                            {data.map((entry, index) => (
-                                                <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#E2E8F0'} />
-                                            ))}
-                                        </Bar>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-
-                            <div className="bg-white p-8 rounded-[2rem] shadow-sm h-80 border border-purple-50 flex flex-col">
-                                <h3 className="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest text-center">Distribución Ventas</h3>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <PieChart>
-                                        <Pie 
-                                            data={[
-                                                { name: 'Monse', value: current.monse || 0 },
-                                                { name: 'Jess', value: current.jess || 0 },
-                                                { name: 'Marla', value: current.marla || 0 }
-                                            ]} 
-                                            dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={8}
-                                        >
-                                            <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="flex justify-center gap-4 text-[10px] font-bold mt-2">
-                                    <span className="text-[#671E75]">● MONSE</span>
-                                    <span className="text-teal-500">● JESS</span>
-                                    <span className="text-purple-400">● MARLA</span>
-                                </div>
+                    {/* Card Principal con Seguros de Lectura */}
+                    <div className={`p-10 rounded-[2.5rem] mb-6 text-white shadow-lg transition-all ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-70 mb-2">Total Cantado Equipo</p>
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-6xl font-black">${(current.total || 0).toLocaleString()}</h2>
+                            <div className="text-right bg-black/10 p-4 rounded-3xl">
+                                <p className="text-4xl font-black">{current.alcance || 0}%</p>
+                                <p className="text-[10px] font-bold opacity-70 uppercase tracking-tighter">Alcance</p>
                             </div>
                         </div>
                     </div>
-                );
-            };
 
-            const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-80">
+                        {/* Histórico */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest">Performance</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={data}>
+                                    <XAxis dataKey="mes" hide />
+                                    <Tooltip contentStyle={{borderRadius: '15px', border: 'none'}} />
+                                    <Bar dataKey="total">
+                                        {data.map((entry, index) => (
+                                            <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#CBD5E1'} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Mix de Ventas */}
+                        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-slate-100">
+                            <h3 className="text-[10px] font-black text-slate-400 uppercase mb-4 tracking-widest text-center">Mix Equipo</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie 
+                                        data={[
+                                            { name: 'Monse', value: current.monse || 0 },
+                                            { name: 'Jess', value: current.jess || 0 },
+                                            { name: 'Marla', value: current.marla || 0 }
+                                        ]} 
+                                        dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={5}
+                                    >
+                                        <Cell fill="#671E75" /><Cell fill="#14B8A6" /><Cell fill="#A855F7" />
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            );
         };
 
-        // Iniciamos la verificación de carga
-        startApp();
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>
