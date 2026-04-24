@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoradaUno | Dashboard Renewal</title>
+    <title>MoradaUno Dashboard</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.12.7/file/dist/Recharts.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;900&display=swap" rel="stylesheet">
@@ -17,122 +17,119 @@
     <style>
         body { font-family: 'Figtree', sans-serif; background-color: #F8F6F9; }
         .card-morada { background: white; border-radius: 2rem; border: 1px solid #F1F5F9; box-shadow: 0 10px 15px -3px rgba(103,30,117,0.05); }
-        .bg-morada { background-color: #671E75; }
-        .shimmer-bar {
+        .shimmer {
             background: linear-gradient(90deg, #671E75 0%, #00C7B1 50%, #671E75 100%);
             background-size: 200% auto;
-            animation: shimmer 3s infinite linear;
+            animation: move 3s infinite linear;
         }
-        @keyframes shimmer { to { background-position: 200% center; } }
+        @keyframes move { to { background-position: 200% center; } }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root">
+        <div style="display: flex; height: 100vh; align-items: center; justify-content: center; color: #671E75; font-weight: 900;">
+            VERIFICANDO COMPONENTES...
+        </div>
+    </div>
 
     <script type="text/babel">
-        // FUNCIÓN DE SEGURIDAD: Espera a que las librerías existan
-        const renderApp = () => {
-            if (!window.Recharts || !window.React) {
-                setTimeout(renderApp, 100);
-                return;
+        // Lógica de espera para asegurar que Recharts cargue
+        const checkLibraries = () => {
+            if (window.Recharts && window.React) {
+                startDashboard();
+            } else {
+                setTimeout(checkLibraries, 200);
             }
+        };
 
+        const startDashboard = () => {
             const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
-            const { useState, useEffect, useMemo } = React;
 
-            const App = () => {
-                const [data, setData] = useState([]);
-                const [loading, setLoading] = useState(true);
-                const [activeMonth, setActiveMonth] = useState("");
+            const Dashboard = () => {
+                const [data, setData] = React.useState([]);
+                const [loading, setLoading] = React.useState(true);
+                const [activeMonth, setActiveMonth] = React.useState("");
 
-                useEffect(() => {
-                    const sheetUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
-                    Papa.parse(sheetUrl, {
+                React.useEffect(() => {
+                    const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
+                    
+                    Papa.parse(url, {
                         download: true,
                         header: true,
-                        complete: (results) => {
-                            const clean = results.data.filter(r => r.QMesEquipo).map(row => {
-                                const n = (v) => parseFloat(v?.replace(/[^0-9.-]+/g, "") || 0);
+                        complete: (res) => {
+                            const formatted = res.data.filter(r => r.QMesEquipo).map(row => {
+                                const parseNum = (v) => parseFloat(v?.replace(/[^0-9.-]+/g, "") || 0);
                                 return {
                                     name: row.QMesEquipo,
-                                    total: n(row.CantadoEquipo),
-                                    meta: n(row["Meta RevenueEquipo"]),
-                                    monse: n(row["Monse cantado"]),
-                                    jess: n(row["Jess cantado"]),
-                                    marla: n(row["Marla cantado"]),
-                                    alcance: n(row["Alcance Equipo (Meta)"])
+                                    total: parseNum(row.CantadoEquipo),
+                                    meta: parseNum(row["Meta RevenueEquipo"]),
+                                    monse: parseNum(row["Monse cantado"]),
+                                    jess: parseNum(row["Jess cantado"]),
+                                    marla: parseNum(row["Marla cantado"]),
+                                    alcance: parseNum(row["Alcance Equipo (Meta)"])
                                 };
                             });
-                            setData(clean);
-                            if(clean.length > 0) setActiveMonth(clean[clean.length-1].name);
+                            setData(formatted);
+                            if(formatted.length > 0) setActiveMonth(formatted[formatted.length-1].name);
                             setLoading(false);
                         }
                     });
                 }, []);
 
-                const current = useMemo(() => data.find(d => d.name === activeMonth) || {}, [data, activeMonth]);
+                const current = React.useMemo(() => data.find(d => d.name === activeMonth) || {}, [data, activeMonth]);
 
-                if (loading) return (
-                    <div className="h-screen flex items-center justify-center">
-                        <p className="font-black text-[#671E75] animate-pulse uppercase tracking-widest">Cargando Dashboard MoradaUno...</p>
-                    </div>
-                );
+                if (loading) return <div className="h-screen flex items-center justify-center font-black text-purple-800 uppercase tracking-widest animate-pulse">Sincronizando con Google Sheets...</div>;
 
                 return (
-                    <div className="max-w-6xl mx-auto p-4 md:p-8">
-                        {/* Header */}
-                        <header className="flex justify-between items-center mb-10 bg-white p-6 rounded-[2rem] shadow-sm border border-purple-50">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-[#671E75] rounded-xl flex items-center justify-center text-white font-black italic text-xl">M</div>
-                                <h1 className="text-xl font-[900] text-slate-800 tracking-tight">MoradaUno | <span className="text-[#00C7B1]">Renewal</span></h1>
+                    <div className="max-w-6xl mx-auto p-4 md:p-10">
+                        {/* Nav */}
+                        <div className="flex justify-between items-center mb-10 bg-white p-6 rounded-[2rem] shadow-sm">
+                            <div className="flex items-center gap-3 text-xl font-black">
+                                <span className="bg-[#671E75] text-white px-3 py-1 rounded-lg italic">M</span>
+                                <span className="text-[#671E75]">MoradaUno</span>
                             </div>
                             <select 
                                 value={activeMonth}
                                 onChange={(e) => setActiveMonth(e.target.value)}
-                                className="bg-slate-50 border-none rounded-xl px-4 py-2 font-bold text-[#671E75] outline-none ring-2 ring-purple-50"
+                                className="bg-slate-50 border-none font-bold p-3 rounded-xl text-[#671E75] ring-2 ring-purple-50"
                             >
                                 {data.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
                             </select>
-                        </header>
+                        </div>
 
-                        {/* KPI Acumulado */}
-                        <div className={`p-10 rounded-[3rem] mb-10 transition-all duration-500 border-b-[10px] ${current.alcance >= 100 ? 'bg-[#00C7B1] text-white border-[#00A392] shadow-xl' : 'bg-white border-purple-100 card-shadow'}`}>
-                            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                                <div className="flex-1 text-center md:text-left">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-80 uppercase">Total Cantado Equipo</p>
-                                    <h2 className="text-6xl font-[900] tracking-tighter">${current.total?.toLocaleString()}</h2>
-                                    <p className="mt-2 text-sm font-bold opacity-70">OBJETIVO: ${current.meta?.toLocaleString()}</p>
-                                </div>
-                                <div className="bg-black/5 p-8 rounded-[2.5rem] text-center min-w-[200px] backdrop-blur-sm">
-                                    <p className="text-[10px] font-black uppercase mb-1 opacity-70">Alcance</p>
-                                    <p className="text-5xl font-[900] tracking-tighter">{current.alcance}%</p>
+                        {/* KPI Principal */}
+                        <div className={`p-10 rounded-[3rem] mb-10 border-b-[12px] transition-all duration-500 ${current.alcance >= 100 ? 'bg-[#00C7B1] text-white border-[#009e8d]' : 'bg-white border-purple-100'}`}>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-80 uppercase">Acumulado Equipo</p>
+                            <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                                <h2 className="text-6xl font-[900] tracking-tighter">${current.total?.toLocaleString()}</h2>
+                                <div className="text-center bg-black/5 px-8 py-4 rounded-[2rem]">
+                                    <p className="text-xs font-bold opacity-70">Alcance</p>
+                                    <p className="text-5xl font-black">{current.alcance}%</p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Gráficos Principales */}
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
-                            <div className="lg:col-span-2 card-morada p-8">
-                                <h3 className="font-black text-[#671E75] text-[10px] uppercase tracking-widest mb-8 text-center md:text-left">Performance Mensual</h3>
-                                <div className="h-72">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <BarChart data={data}>
-                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                                            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900}} />
-                                            <YAxis hide />
-                                            <Tooltip cursor={{fill: '#F8F6F9'}} />
-                                            <Bar dataKey="total" radius={[8, 8, 0, 0]}>
-                                                {data.map((entry, index) => (
-                                                    <Cell key={index} fill={entry.name === activeMonth ? '#671E75' : '#E2E8F0'} />
-                                                ))}
-                                            </Bar>
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
+                        {/* Gráficos */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            <div className="lg:col-span-2 card-morada p-8 h-[400px]">
+                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-8">Performance</h3>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={data}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900}} />
+                                        <YAxis hide />
+                                        <Tooltip cursor={{fill: '#F8F6F9'}} />
+                                        <Bar dataKey="total" radius={[10, 10, 0, 0]}>
+                                            {data.map((entry, index) => (
+                                                <Cell key={index} fill={entry.name === activeMonth ? '#671E75' : '#E2E8F0'} />
+                                            ))}
+                                        </Bar>
+                                    </BarChart>
+                                </ResponsiveContainer>
                             </div>
 
                             <div className="card-morada p-8">
-                                <h3 className="font-black text-[#671E75] text-[10px] uppercase tracking-widest mb-6">Mix Vendedoras</h3>
+                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Mix Ventas</h3>
                                 <div className="h-48">
                                     <ResponsiveContainer>
                                         <PieChart>
@@ -147,7 +144,7 @@
                                         </PieChart>
                                     </ResponsiveContainer>
                                 </div>
-                                <div className="mt-6 space-y-2 text-[11px] font-black uppercase">
+                                <div className="mt-6 space-y-3 font-black text-[11px] uppercase">
                                     <div className="flex justify-between text-[#671E75]"><span>Monse</span><span>${current.monse?.toLocaleString()}</span></div>
                                     <div className="flex justify-between text-[#00C7B1]"><span>Jess</span><span>${current.jess?.toLocaleString()}</span></div>
                                     <div className="flex justify-between text-purple-400"><span>Marla</span><span>${current.marla?.toLocaleString()}</span></div>
@@ -155,25 +152,19 @@
                             </div>
                         </div>
 
-                        {/* Pisos de Venta (Lógica Original) */}
-                        <div className="card-morada p-10 overflow-hidden">
-                            <h3 className="font-black text-[#671E75] text-[10px] uppercase tracking-[0.2em] mb-12">Pisos de Venta Institucionales</h3>
+                        {/* Pisos de Venta */}
+                        <div className="mt-10 card-morada p-10">
+                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-12">Pisos Institucionales</h3>
                             <div className="relative pt-2 pb-14 px-4">
                                 <div className="h-4 bg-slate-100 rounded-full w-full absolute shadow-inner"></div>
-                                <div className="h-4 shimmer-bar rounded-full absolute transition-all duration-1000 shadow-md" style={{ width: `${Math.min(100, (current.total / (current.meta * 1.51)) * 100)}%` }}></div>
-                                
+                                <div className="h-4 shimmer rounded-full absolute transition-all duration-1000" style={{ width: `${Math.min(100, (current.total / (current.meta * 1.51)) * 100)}%` }}></div>
                                 <div className="relative flex justify-between mt-10">
-                                    {[60, 101, 121, 151].map(p => {
-                                        const montoPiso = current.meta * (p/100);
-                                        const logrado = current.total >= montoPiso;
-                                        return (
-                                            <div key={p} className="flex flex-col items-center">
-                                                <div className={`w-5 h-5 rounded-full border-4 border-white shadow-md transition-all ${logrado ? 'bg-[#671E75] scale-125' : 'bg-slate-200'}`}></div>
-                                                <span className={`text-[12px] font-black mt-3 ${logrado ? 'text-[#671E75]' : 'text-slate-300'}`}>{p}%</span>
-                                                <span className="text-[9px] font-bold text-slate-300 tracking-tighter">${montoPiso.toLocaleString()}</span>
-                                            </div>
-                                        );
-                                    })}
+                                    {[60, 101, 121, 151].map(p => (
+                                        <div key={p} className="flex flex-col items-center">
+                                            <div className={`w-5 h-5 rounded-full border-4 border-white shadow-md ${current.total >= (current.meta * p/100) ? 'bg-[#671E75] scale-125' : 'bg-slate-200'}`}></div>
+                                            <span className="text-xs font-black mt-3 text-slate-400">{p}%</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -182,11 +173,11 @@
             };
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
-            root.render(<App />);
+            root.render(<Dashboard />);
         };
 
-        // Iniciamos el proceso de renderizado con seguridad
-        renderApp();
+        // Inicia el chequeo de librerías
+        checkLibraries();
     </script>
 </body>
 </html>
