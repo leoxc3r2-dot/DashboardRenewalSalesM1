@@ -7,25 +7,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Figtree', sans-serif; background-color: #F8F6F9; }
-        .card-morada { background: white; border-radius: 2rem; box-shadow: 0 4px 20px rgba(103, 30, 117, 0.05); }
+        body { font-family: 'Figtree', sans-serif; background-color: #F8F6F9; color: #12051A; }
+        .card-morada { background: white; border-radius: 2rem; box-shadow: 0 4px 20px rgba(103, 30, 117, 0.08); border: 1px solid #F1F5F9; }
+        .bg-morada { background-color: #671E75; }
+        .text-morada { color: #671E75; }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Cell, PieChart, Pie } = window.Recharts;
+        // Acceso seguro a las gráficas
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
         const App = () => {
             const [data, setData] = React.useState([]);
             const [loading, setLoading] = React.useState(true);
-            const [selectedMonth, setSelectedMonth] = React.useState("");
+            const [activeMonth, setActiveMonth] = React.useState("");
 
             React.useEffect(() => {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
@@ -47,56 +50,65 @@
                             };
                         });
                         setData(clean);
-                        if(clean.length > 0) setSelectedMonth(clean[clean.length-1].name);
+                        if(clean.length > 0) setActiveMonth(clean[clean.length-1].name);
                         setLoading(false);
                     }
                 });
             }, []);
 
-            const current = React.useMemo(() => data.find(d => d.name === selectedMonth) || {}, [data, selectedMonth]);
+            const current = React.useMemo(() => data.find(d => d.name === activeMonth) || {}, [data, activeMonth]);
 
-            if (loading) return <div className="h-screen flex items-center justify-center text-[#671E75] font-black">CARGANDO DASHBOARD...</div>;
+            if (loading) return <div className="h-screen flex items-center justify-center text-morada font-black animate-pulse text-xl tracking-widest">CONECTANDO CON DATA...</div>;
 
             return (
-                <div className="p-4 md:p-8 max-w-6xl mx-auto">
-                    {/* Header */}
-                    <div className="flex justify-between items-center mb-8 bg-white p-6 rounded-[2rem] shadow-sm">
-                        <h1 className="text-2xl font-black text-[#671E75]">MoradaUno <span className="text-slate-400 font-light">| Comercial</span></h1>
+                <div className="p-4 md:p-8 max-w-7xl mx-auto">
+                    {/* Header Institucional */}
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-[2.5rem] card-shadow">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-morada rounded-xl flex items-center justify-center text-white font-black text-xl italic shadow-lg shadow-purple-200">M</div>
+                            <div>
+                                <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">MoradaUno</h1>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Renewal Sales Dashboard</p>
+                            </div>
+                        </div>
                         <select 
-                            value={selectedMonth} 
-                            onChange={(e) => setSelectedMonth(e.target.value)}
-                            className="bg-slate-50 border-none font-bold px-4 py-2 rounded-xl text-[#671E75]"
+                            value={activeMonth} 
+                            onChange={(e) => setActiveMonth(e.target.value)}
+                            className="bg-slate-50 border-none font-bold px-6 py-3 rounded-2xl text-morada outline-none ring-2 ring-purple-50 focus:ring-purple-200 transition-all cursor-pointer"
                         >
-                            {data.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
+                            {data.map(d => <option key={d.name} value={d.name}>{d.name} 2026</option>)}
                         </select>
                     </div>
 
-                    {/* KPI Principal */}
-                    <div className={`p-10 rounded-[2.5rem] mb-8 border-2 ${current.alcance >= 100 ? 'bg-[#00C7B1] text-white border-[#00C7B1]' : 'bg-white border-purple-50'}`}>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-80 mb-2">Acumulado Total</p>
-                        <div className="flex justify-between items-end">
-                            <h2 className="text-6xl font-[900] tracking-tighter">${current.total?.toLocaleString()}</h2>
-                            <div className="text-right">
-                                <p className="text-xs font-bold uppercase opacity-80">Alcance</p>
-                                <p className="text-4xl font-black">{current.alcance}%</p>
+                    {/* Acumulado Estilo Original */}
+                    <div className={`p-10 rounded-[3rem] mb-8 transition-all duration-500 border-b-8 ${current.alcance >= 100 ? 'bg-[#00C7B1] text-white border-[#009e8d] shadow-xl shadow-teal-100' : 'bg-white border-purple-100'}`}>
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                            <div className="flex-1 text-center md:text-left">
+                                <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-2 ${current.alcance >= 100 ? 'text-teal-50' : 'text-slate-400'}`}>Acumulado Total Cantado</p>
+                                <h2 className="text-6xl font-[900] tracking-tighter">${current.total?.toLocaleString()}</h2>
+                                <p className="mt-2 text-sm font-bold opacity-80">Meta Mensual: ${current.meta?.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-black/5 p-8 rounded-[2.5rem] backdrop-blur-sm text-center min-w-[200px]">
+                                <p className="text-[10px] font-black uppercase mb-1">Logro Meta</p>
+                                <p className="text-5xl font-black tracking-tighter">{current.alcance}%</p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Gráficas */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Tendencia Mensual */}
                         <div className="lg:col-span-2 card-morada p-8">
-                            <h3 className="font-black text-[#671E75] text-xs uppercase mb-8 tracking-widest">Performance Mensual</h3>
+                            <h3 className="font-black text-morada text-[11px] uppercase mb-8 tracking-[0.2em]">Tendencia de Ingresos</h3>
                             <div className="h-80">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={data}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900}} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: '#94A3B8'}} />
                                         <YAxis hide />
-                                        <Tooltip cursor={{fill: '#F8FAFC'}} />
-                                        <Bar dataKey="total" radius={[10, 10, 0, 0]}>
+                                        <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.05)'}} />
+                                        <Bar dataKey="total" radius={[12, 12, 0, 0]}>
                                             {data.map((entry, index) => (
-                                                <Cell key={index} fill={entry.name === selectedMonth ? '#671E75' : '#E2E8F0'} />
+                                                <Cell key={index} fill={entry.name === activeMonth ? '#671E75' : '#E2E8F0'} />
                                             ))}
                                         </Bar>
                                     </BarChart>
@@ -104,9 +116,9 @@
                             </div>
                         </div>
 
-                        {/* Mix de Asesoras */}
+                        {/* Mix por Asesora */}
                         <div className="card-morada p-8">
-                            <h3 className="font-black text-[#671E75] text-xs uppercase mb-6 tracking-widest">Mix Ventas</h3>
+                            <h3 className="font-black text-morada text-[11px] uppercase mb-6 tracking-[0.2em]">Composición Comercial</h3>
                             <div className="h-60">
                                 <ResponsiveContainer>
                                     <PieChart>
@@ -114,36 +126,45 @@
                                             { name: 'Monse', value: current.monse },
                                             { name: 'Jess', value: current.jess },
                                             { name: 'Marla', value: current.marla }
-                                        ]} innerRadius={50} outerRadius={75} paddingAngle={8} dataKey="value">
-                                            <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#B14EB5" />
+                                        ]} innerRadius={55} outerRadius={80} paddingAngle={8} dataKey="value">
+                                            <Cell fill="#671E75" />
+                                            <Cell fill="#00C7B1" />
+                                            <Cell fill="#B14EB5" />
                                         </Pie>
                                         <Tooltip />
                                     </PieChart>
                                 </ResponsiveContainer>
                             </div>
-                            <div className="mt-4 space-y-2">
-                                <div className="flex justify-between text-[11px] font-black uppercase text-[#671E75]"><span>Monse</span><span>${current.monse?.toLocaleString()}</span></div>
-                                <div className="flex justify-between text-[11px] font-black uppercase text-[#00C7B1]"><span>Jess</span><span>${current.jess?.toLocaleString()}</span></div>
-                                <div className="flex justify-between text-[11px] font-black uppercase text-purple-400"><span>Marla</span><span>${current.marla?.toLocaleString()}</span></div>
+                            <div className="mt-6 space-y-3">
+                                <div className="flex justify-between text-xs font-black uppercase text-morada"><span>Montserrat</span><span>${current.monse?.toLocaleString()}</span></div>
+                                <div className="flex justify-between text-xs font-black uppercase text-[#00C7B1]"><span>Jessica</span><span>${current.jess?.toLocaleString()}</span></div>
+                                <div className="flex justify-between text-xs font-black uppercase text-purple-400"><span>Marla</span><span>${current.marla?.toLocaleString()}</span></div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Pisos (Lógica original) */}
-                    <div className="mt-8 card-morada p-8">
-                        <h3 className="font-black text-[#671E75] text-xs uppercase mb-10 tracking-widest">Pisos de Venta</h3>
-                        <div className="relative pt-2 pb-12">
-                            <div className="h-3 bg-slate-100 rounded-full w-full absolute"></div>
-                            <div className="h-3 bg-[#671E75] rounded-full absolute transition-all" style={{ width: `${Math.min(100, (current.total / (current.meta * 1.51)) * 100)}%` }}></div>
+                    {/* Pisos de Venta Replicados del original */}
+                    <div className="mt-8 card-morada p-10 overflow-hidden">
+                        <div className="flex justify-between items-center mb-10">
+                            <h3 className="font-black text-morada text-[11px] uppercase tracking-[0.2em]">Análisis de Pisos de Venta</h3>
+                            <span className="text-[10px] font-black bg-purple-50 px-4 py-2 rounded-full text-morada uppercase">Nivel: {current.alcance}%</span>
+                        </div>
+                        <div className="relative pt-2 pb-14">
+                            <div className="h-4 bg-slate-100 rounded-full w-full absolute shadow-inner"></div>
+                            <div className="h-4 bg-morada rounded-full absolute transition-all duration-1000 shadow-lg shadow-purple-200" style={{ width: `${Math.min(100, (current.total / (current.meta * 1.51)) * 100)}%` }}></div>
                             
-                            <div className="relative flex justify-between mt-8">
-                                {[60, 101, 121, 151].map(p => (
-                                    <div key={p} className="flex flex-col items-center">
-                                        <div className={`w-4 h-4 rounded-full border-4 border-white shadow-sm ${current.total >= (current.meta * p/100) ? 'bg-[#671E75]' : 'bg-slate-200'}`}></div>
-                                        <span className="text-[10px] font-black mt-2 text-slate-400">{p}%</span>
-                                        <span className="text-[9px] font-bold text-slate-300">${(current.meta * p/100).toLocaleString()}</span>
-                                    </div>
-                                ))}
+                            <div className="relative flex justify-between mt-10">
+                                {[60, 101, 121, 151].map(p => {
+                                    const montoPiso = current.meta * p/100;
+                                    const alcanzado = current.total >= montoPiso;
+                                    return (
+                                        <div key={p} className="flex flex-col items-center">
+                                            <div className={`w-5 h-5 rounded-full border-4 border-white shadow-md transition-all duration-500 ${alcanzado ? 'bg-morada scale-125' : 'bg-slate-200'}`}></div>
+                                            <span className={`text-[12px] font-black mt-3 ${alcanzado ? 'text-morada' : 'text-slate-300'}`}>{p}%</span>
+                                            <span className="text-[10px] font-bold text-slate-300 tracking-tighter">${montoPiso.toLocaleString()}</span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
