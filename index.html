@@ -5,31 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard MoradaUno</title>
     
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prop-types/15.8.1/prop-types.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/prop-types@15/prop-types.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.10.3/lib/Recharts.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50">
     <div id="root">
         <div class="flex items-center justify-center h-screen">
-            <p class="text-purple-800 font-bold animate-pulse">CARGANDO COMPONENTES...</p>
+            <div class="text-center">
+                <p class="text-[#671E75] font-black text-xl animate-bounce">VERIFICANDO COMPONENTES...</p>
+                <p class="text-gray-400 text-sm">Si esto tarda mucho, revisa que 'datos.csv' esté en la misma carpeta.</p>
+            </div>
         </div>
     </div>
 
     <script type="text/babel">
-        // Esperamos a que el navegador diga que todo está listo
-        window.addEventListener('load', () => {
+        // Función para esperar a que Recharts esté disponible
+        const startApp = () => {
+            if (!window.Recharts) {
+                setTimeout(startApp, 100);
+                return;
+            }
+
             const { useState, useEffect } = React;
-            
-            // Acceso seguro a Recharts
-            const { 
-                BarChart, Bar, XAxis, YAxis, Tooltip, 
-                ResponsiveContainer, Cell, PieChart, Pie 
-            } = window.Recharts;
+            const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
             const App = () => {
                 const [data, setData] = useState([]);
@@ -37,7 +40,6 @@
                 const [loading, setLoading] = useState(true);
 
                 useEffect(() => {
-                    // Lee el archivo datos.csv que subiste a tu carpeta
                     Papa.parse("datos.csv", {
                         download: true,
                         header: true,
@@ -51,58 +53,58 @@
                                         mes: row.QMesEquipo,
                                         total: n(row.CantadoEquipo),
                                         alcance: n(row["Alcance mesEquipo"]),
-                                        monse: n(row["Monse cantado"]),
-                                        jess: n(row["Jess cantado"]),
-                                        marla: n(row["Marla cantado"])
+                                        monse: n(row["Monse cantado"] || row.cantadoMonse),
+                                        jess: n(row["Jess cantado"] || row.cantadoJess),
+                                        marla: n(row["Marla cantado"] || row.cantadoMarla)
                                     };
                                 });
-                            setData(formatted);
-                            if(formatted.length > 0) setActiveMonth(formatted[formatted.length-1].mes);
+                            
+                            if (formatted.length > 0) {
+                                setData(formatted);
+                                setActiveMonth(formatted[formatted.length - 1].mes);
+                            }
                             setLoading(false);
                         }
                     });
                 }, []);
 
-                if (loading) return (
-                    <div className="h-screen flex items-center justify-center font-black text-[#671E75]">
-                        PREPARANDO DASHBOARD...
-                    </div>
-                );
+                if (loading) return null;
 
-                const current = data.find(d => d.mes === activeMonth) || data[0];
+                // PROTECCIÓN: Si current no existe, usamos valores vacíos para que no de error
+                const current = data.find(d => d.mes === activeMonth) || { total: 0, alcance: 0, monse: 0, jess: 0, marla: 0 };
 
                 return (
-                    <div className="max-w-5xl mx-auto p-6">
-                        <header className="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm">
-                            <h1 className="text-xl font-black text-purple-900 tracking-tighter italic">MORADAUNO</h1>
+                    <div className="max-w-5xl mx-auto p-6 animate-in fade-in duration-700">
+                        <header className="flex justify-between items-center mb-8 bg-white p-6 rounded-3xl shadow-sm border border-purple-50">
+                            <h1 className="text-2xl font-black text-[#671E75] italic tracking-tighter">MORADAUNO</h1>
                             <select 
                                 value={activeMonth} 
                                 onChange={(e) => setActiveMonth(e.target.value)}
-                                className="bg-purple-50 border-none font-bold px-4 py-2 rounded-xl text-purple-700 outline-none"
+                                className="bg-purple-50 border-none font-bold px-4 py-2 rounded-xl text-[#671E75] focus:ring-2 focus:ring-purple-200 outline-none"
                             >
                                 {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
                             </select>
                         </header>
 
-                        <div className={`p-10 rounded-[2.5rem] mb-8 text-white shadow-xl transition-all ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
-                            <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-2 opacity-70">Status Equipo</p>
+                        <div className={`p-10 rounded-[2.5rem] mb-8 text-white shadow-xl transition-all duration-500 ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
+                            <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Cantado Equipo</p>
                             <div className="flex justify-between items-end">
-                                <h2 className="text-6xl font-black">${current.total.toLocaleString()}</h2>
+                                <h2 className="text-6xl font-black tracking-tighter">${(current.total || 0).toLocaleString()}</h2>
                                 <div className="text-right">
-                                    <p className="text-4xl font-black">{current.alcance}%</p>
-                                    <p className="text-[10px] font-bold opacity-70 uppercase">Alcance Mes</p>
+                                    <p className="text-5xl font-black">{current.alcance || 0}%</p>
+                                    <p className="text-[10px] font-bold opacity-70 uppercase tracking-widest">Alcance</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="bg-white p-6 rounded-3xl shadow-sm h-72">
-                                <h3 className="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest">Histórico</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-slate-800">
+                            <div className="bg-white p-8 rounded-[2rem] shadow-sm h-80 border border-purple-50">
+                                <h3 className="text-[10px] font-black text-gray-400 uppercase mb-6 tracking-widest">Performance Mensual</h3>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={data}>
                                         <XAxis dataKey="mes" hide />
-                                        <Tooltip cursor={{fill: '#F8F6F9'}} />
-                                        <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                                        <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius: '15px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}} />
+                                        <Bar dataKey="total" radius={[8, 8, 0, 0]}>
                                             {data.map((entry, index) => (
                                                 <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#E2E8F0'} />
                                             ))}
@@ -111,23 +113,28 @@
                                 </ResponsiveContainer>
                             </div>
 
-                            <div className="bg-white p-6 rounded-3xl shadow-sm h-72">
-                                <h3 className="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest text-center">Mix de Ventas</h3>
+                            <div className="bg-white p-8 rounded-[2rem] shadow-sm h-80 border border-purple-50 flex flex-col">
+                                <h3 className="text-[10px] font-black text-gray-400 uppercase mb-4 tracking-widest text-center">Distribución Ventas</h3>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
                                         <Pie 
                                             data={[
-                                                { name: 'Monse', value: current.monse },
-                                                { name: 'Jess', value: current.jess },
-                                                { name: 'Marla', value: current.marla }
+                                                { name: 'Monse', value: current.monse || 0 },
+                                                { name: 'Jess', value: current.jess || 0 },
+                                                { name: 'Marla', value: current.marla || 0 }
                                             ]} 
-                                            dataKey="value" innerRadius={50} outerRadius={70} paddingAngle={5}
+                                            dataKey="value" innerRadius={60} outerRadius={80} paddingAngle={8}
                                         >
                                             <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
                                         </Pie>
                                         <Tooltip />
                                     </PieChart>
                                 </ResponsiveContainer>
+                                <div className="flex justify-center gap-4 text-[10px] font-bold mt-2">
+                                    <span className="text-[#671E75]">● MONSE</span>
+                                    <span className="text-teal-500">● JESS</span>
+                                    <span className="text-purple-400">● MARLA</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -136,7 +143,10 @@
 
             const root = ReactDOM.createRoot(document.getElementById('root'));
             root.render(<App />);
-        });
+        };
+
+        // Iniciamos la verificación de carga
+        startApp();
     </script>
 </body>
 </html>
