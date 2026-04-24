@@ -1,1168 +1,128 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Renovaciones | MoradaUno</title>
-<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-<!-- React + ReactDOM -->
-<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-<!-- Babel (JSX en browser) -->
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<!-- Recharts -->
-<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
-
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --purple-dark:  #671E75;
-    --purple-mid:   #772583;
-    --purple-light: #B14EB5;
-    --purple-pale:  #E2ACD7;
-    --purple-bg:    #F7EEF8;
-    --purple-900:   #3B0764;
-    --teal:         #10B981;
-    --danger:       #EF4444;
-    --amber:        #F59E0B;
-    --text:         #12051A;
-    --text-muted:   #6B6B78;
-    --text-subtle:  #94A3B8;
-    --bg:           #F4F0F5;
-    --surface:      #FFFFFF;
-    --slate-50:     #F8FAFC;
-    --slate-100:    #F1F5F9;
-    --slate-200:    #E2E8F0;
-    --slate-400:    #94A3B8;
-    --slate-500:    #64748B;
-    --slate-600:    #475569;
-    --slate-900:    #0F172A;
-    --border:       rgba(103,30,117,0.10);
-    --border-med:   rgba(103,30,117,0.18);
-    --radius:       2rem;
-    --radius-sm:    1rem;
-  }
-
-  body {
-    font-family: 'Figtree', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
-
-  #root { min-height: 100vh; }
-
-  .accent-bar {
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, #671E75, #B14EB5, #E2ACD7);
-  }
-
-  /* Loader */
-  .loader-wrap {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 60vh;
-    gap: 1.5rem;
-  }
-  .loader-logo {
-    font-size: 1.5rem;
-    font-weight: 900;
-    color: var(--purple-dark);
-    letter-spacing: -0.02em;
-  }
-  .loader-logo span { color: var(--purple-light); }
-  .loader-bar {
-    width: 200px;
-    height: 4px;
-    background: var(--purple-pale);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .loader-bar-inner {
-    height: 100%;
-    background: linear-gradient(90deg, var(--purple-dark), var(--purple-light));
-    border-radius: 2px;
-    animation: loaderPulse 1.4s ease-in-out infinite;
-  }
-  @keyframes loaderPulse {
-    0% { width: 0%; }
-    50% { width: 80%; }
-    100% { width: 100%; }
-  }
-  .loader-text {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-muted);
-  }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--purple-bg); }
-  ::-webkit-scrollbar-thumb { background: var(--purple-pale); border-radius: 3px; }
-
-  /* Badge chip de actualización */
-  .refresh-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--purple-mid);
-    background: var(--purple-bg);
-    border: 1px solid var(--border-med);
-    padding: 4px 12px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: none;
-    font-family: 'Figtree', sans-serif;
-  }
-  .refresh-chip:hover { background: var(--purple-pale); color: var(--purple-dark); }
-  .refresh-chip.spinning svg { animation: spin 1s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* Responsive helpers */
-  @media (max-width: 768px) {
-    .md-grid-3 { grid-template-columns: 1fr !important; }
-    .md-grid-2 { grid-template-columns: 1fr !important; }
-    .md-flex-col { flex-direction: column !important; }
-    .md-text-lg { font-size: 2rem !important; }
-    .md-hide { display: none !important; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoradaUno | Dashboard Interno</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts@2.10.3/lib/Recharts.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;900&display=swap');
+        body { font-family: 'Figtree', sans-serif; background-color: #F8F6F9; }
+        .animate-fade { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
 </head>
 <body>
+    <div id="root"></div>
 
-<div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
-<script type="text/babel">
-// ─────────────────────────────────────────────
-//  CONFIGURACIÓN
-// ─────────────────────────────────────────────
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=tsv";
+        const App = () => {
+            const [data, setData] = useState([]);
+            const [activeMonth, setActiveMonth] = useState("");
+            const [loading, setLoading] = useState(true);
 
-// Intervalo de recarga automática (ms). 5 minutos = 300000
-const AUTO_REFRESH_MS = 300000;
+            useEffect(() => {
+                // Cargamos el archivo CSV local
+                Papa.parse("datos.csv", {
+                    download: true,
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (results) => {
+                        const cleanNum = (val) => {
+                            if (!val) return 0;
+                            return parseFloat(String(val).replace(/[^0-9.-]+/g, "")) || 0;
+                        };
 
-// ─────────────────────────────────────────────
-//  DATOS HARDCODED (fallback / histórico)
-// ─────────────────────────────────────────────
-const DATA_BY_MONTH_STATIC = {
-  "Enero": {
-    equipo: { meta_corriente:1784250, acumulado_corriente:1540403, recuperado_total:0, recuperado_cantado:0, piso_60:1070550, acumulado_total:1540403, total_alcance:86, alcance_corriente:86 },
-    vendedoras: [
-      { name:"Montserrat", meta_mes:892125, acumulado_mes:754371, alcance_mes:85, faltan_mes:137754, recuperado:0, acumulado_total:754371, alcance_total:85, ticket_promedio:6234, volumen:121, pisos:[{label:"60%",monto:535275},{label:"101%",monto:901046},{label:"121%",monto:1079471},{label:"151%",monto:1347109}] },
-      { name:"Jessica",    meta_mes:0, acumulado_mes:0, alcance_mes:0, faltan_mes:0, recuperado:0, acumulado_total:0, alcance_total:0, ticket_promedio:0, volumen:0, pisos:[{label:"60%",monto:0},{label:"101%",monto:0},{label:"121%",monto:0},{label:"151%",monto:0}] },
-      { name:"Marla",      meta_mes:892125, acumulado_mes:786032, alcance_mes:88, faltan_mes:106093, recuperado:0, acumulado_total:786032, alcance_total:88, ticket_promedio:6391, volumen:123, pisos:[{label:"60%",monto:535275},{label:"101%",monto:901046},{label:"121%",monto:1079471},{label:"151%",monto:1347109}] }
-    ]
-  },
-  "Febrero": {
-    equipo: { meta_corriente:1573000, acumulado_corriente:1697778, recuperado_total:0, recuperado_cantado:0, piso_60:943800, acumulado_total:1697778, total_alcance:108, alcance_corriente:108 },
-    vendedoras: [
-      { name:"Montserrat", meta_mes:793000, acumulado_mes:840466, alcance_mes:106, faltan_mes:-47466, recuperado:0, acumulado_total:840466, alcance_total:106, ticket_promedio:6670, volumen:126, pisos:[{label:"60%",monto:475800},{label:"101%",monto:800930},{label:"121%",monto:959530},{label:"151%",monto:1197430}] },
-      { name:"Jessica",    meta_mes:0, acumulado_mes:0, alcance_mes:0, faltan_mes:0, recuperado:0, acumulado_total:0, alcance_total:0, ticket_promedio:0, volumen:0, pisos:[{label:"60%",monto:0},{label:"101%",monto:0},{label:"121%",monto:0},{label:"151%",monto:0}] },
-      { name:"Marla",      meta_mes:780000, acumulado_mes:857312, alcance_mes:110, faltan_mes:-77312, recuperado:0, acumulado_total:857312, alcance_total:110, ticket_promedio:7327, volumen:117, pisos:[{label:"60%",monto:468000},{label:"101%",monto:787800},{label:"121%",monto:943800},{label:"151%",monto:1177800}] }
-    ]
-  },
-  "Marzo": {
-    equipo: { meta_corriente:1384500, acumulado_corriente:1524499, recuperado_total:0, recuperado_cantado:0, piso_60:830700, acumulado_total:1524499, total_alcance:110, alcance_corriente:110 },
-    vendedoras: [
-      { name:"Montserrat", meta_mes:695500, acumulado_mes:764756, alcance_mes:110, faltan_mes:-69256, recuperado:0, acumulado_total:764756, alcance_total:110, ticket_promedio:7572, volumen:101, pisos:[{label:"60%",monto:417300},{label:"101%",monto:702455},{label:"121%",monto:841555},{label:"151%",monto:1050205}] },
-      { name:"Jessica",    meta_mes:0, acumulado_mes:0, alcance_mes:0, faltan_mes:0, recuperado:0, acumulado_total:0, alcance_total:0, ticket_promedio:0, volumen:0, pisos:[{label:"60%",monto:0},{label:"101%",monto:0},{label:"121%",monto:0},{label:"151%",monto:0}] },
-      { name:"Marla",      meta_mes:689000, acumulado_mes:759743, alcance_mes:110, faltan_mes:-70743, recuperado:0, acumulado_total:759743, alcance_total:110, ticket_promedio:7305, volumen:104, pisos:[{label:"60%",monto:413400},{label:"101%",monto:695890},{label:"121%",monto:833690},{label:"151%",monto:1040390}] }
-    ]
-  },
-  "Abril": {
-    equipo: { meta_corriente:1287000, acumulado_corriente:1073973, recuperado_total:37987, recuperado_cantado:6, piso_60:772200, acumulado_total:1111960, total_alcance:86, alcance_corriente:83 },
-    vendedoras: [
-      { name:"Montserrat", meta_mes:435500, acumulado_mes:321989, alcance_mes:74, faltan_mes:113511, recuperado:23348, acumulado_total:345337, alcance_total:79, ticket_promedio:6907, volumen:50, pisos:[{label:"60%",monto:261300},{label:"101%",monto:439855},{label:"121%",monto:526955},{label:"151%",monto:657605}] },
-      { name:"Jessica",    meta_mes:416000, acumulado_mes:405274, alcance_mes:97, faltan_mes:10726, recuperado:0, acumulado_total:405274, alcance_total:97, ticket_promedio:7947, volumen:51, pisos:[{label:"60%",monto:249600},{label:"101%",monto:420160},{label:"121%",monto:503360},{label:"151%",monto:628160}] },
-      { name:"Marla",      meta_mes:435500, acumulado_mes:346711, alcance_mes:80, faltan_mes:88789, recuperado:14639, acumulado_total:361350, alcance_total:83, ticket_promedio:7528, volumen:48, pisos:[{label:"60%",monto:261300},{label:"101%",monto:439855},{label:"121%",monto:526955},{label:"151%",monto:657605}] }
-    ]
-  },
-  "Mayo": {
-    equipo: { meta_corriente:1792000, acumulado_corriente:184206, recuperado_total:0, recuperado_cantado:0, piso_60:1075200, acumulado_total:184206, total_alcance:10, alcance_corriente:10 },
-    vendedoras: [
-      { name:"Montserrat", meta_mes:595000, acumulado_mes:63981, alcance_mes:11, faltan_mes:531019, recuperado:0, acumulado_total:63981, alcance_total:11, ticket_promedio:7998, volumen:8, pisos:[{label:"60%",monto:357000},{label:"101%",monto:600950},{label:"121%",monto:719950},{label:"151%",monto:898450}] },
-      { name:"Jessica",    meta_mes:595000, acumulado_mes:62836, alcance_mes:11, faltan_mes:532165, recuperado:0, acumulado_total:62836, alcance_total:11, ticket_promedio:7854, volumen:8, pisos:[{label:"60%",monto:357000},{label:"101%",monto:600950},{label:"121%",monto:719950},{label:"151%",monto:898450}] },
-      { name:"Marla",      meta_mes:602000, acumulado_mes:57390, alcance_mes:10, faltan_mes:544610, recuperado:0, acumulado_total:57390, alcance_total:10, ticket_promedio:9565, volumen:6, pisos:[{label:"60%",monto:361200},{label:"101%",monto:608020},{label:"121%",monto:728420},{label:"151%",monto:909020}] }
-    ]
-  },
-  "Junio": {
-    equipo: { meta_corriente:0, acumulado_corriente:7830, recuperado_total:0, recuperado_cantado:0, piso_60:0, acumulado_total:7830, total_alcance:100, alcance_corriente:100 },
-    vendedoras: [
-      { name:"Montserrat", meta_mes:0, acumulado_mes:0, alcance_mes:0, faltan_mes:0, recuperado:0, acumulado_total:0, alcance_total:0, ticket_promedio:0, volumen:0, pisos:[{label:"60%",monto:0},{label:"101%",monto:0},{label:"121%",monto:0},{label:"151%",monto:0}] },
-      { name:"Jessica",    meta_mes:0, acumulado_mes:0, alcance_mes:0, faltan_mes:0, recuperado:0, acumulado_total:0, alcance_total:0, ticket_promedio:0, volumen:0, pisos:[{label:"60%",monto:0},{label:"101%",monto:0},{label:"121%",monto:0},{label:"151%",monto:0}] },
-      { name:"Marla",      meta_mes:0, acumulado_mes:7830, alcance_mes:100, faltan_mes:-7830, recuperado:0, acumulado_total:7830, alcance_total:100, ticket_promedio:7830, volumen:1, pisos:[{label:"60%",monto:0},{label:"101%",monto:0},{label:"121%",monto:0},{label:"151%",monto:0}] }
-    ]
-  }
-};
+                        // Mapeo flexible por si las columnas tienen espacios extra
+                        const formatted = results.data
+                            .filter(row => row.Mes || row["Mes "])
+                            .map(row => {
+                                const getVal = (key) => {
+                                    const foundKey = Object.keys(row).find(k => k.trim().toLowerCase().includes(key.toLowerCase()));
+                                    return row[foundKey];
+                                };
 
-const QUARTERLY_DATA_STATIC = {
-  "Q1": {
-    meta_revenue:4741750, output_revenue:4762680, alcance_revenue:100,
-    meta_ticket:6500, output_ticket:6912, alcance_ticket:106,
-    mensual:[{mes:"Enero",revenue:1540403,ticket:6313},{mes:"Febrero",revenue:1697778,ticket:6987},{mes:"Marzo",revenue:1524499,ticket:7437}]
-  },
-  "Q2": {
-    meta_revenue:3079000, output_revenue:1266009, alcance_revenue:41,
-    meta_ticket:6750, output_ticket:7904, alcance_ticket:117,
-    mensual:[{mes:"Abril",revenue:1073973,ticket:7510},{mes:"Mayo",revenue:184206,ticket:8373},{mes:"Junio",revenue:7830,ticket:7830}]
-  }
-};
+                                return {
+                                    mes: (row.Mes || row["Mes "]).trim(),
+                                    total: cleanNum(getVal("Equipo Cantado")),
+                                    meta: cleanNum(getVal("Meta  Revenue")),
+                                    alcance: cleanNum(getVal("Alcance mes")),
+                                    monse: cleanNum(getVal("Monse cantado")),
+                                    jess: cleanNum(getVal("Jess cantado")),
+                                    marla: cleanNum(getVal("Marla cantado"))
+                                };
+                            });
+                        
+                        if (formatted.length > 0) {
+                            setData(formatted);
+                            setActiveMonth(formatted[formatted.length - 1].mes);
+                        }
+                        setLoading(false);
+                    }
+                });
+            }, []);
 
-// ─────────────────────────────────────────────
-//  PARSER: TSV → DATA_BY_MONTH + QUARTERLY_DATA
-//  Estructura esperada del Sheet (columnas A–Z):
-//
-//  Row 1: encabezados (se ignoran)
-//  Cada fila representa el "EQUIPO" de un mes:
-//    col0=mes, col1=meta_corriente, col2=acumulado_corriente,
-//    col3=recuperado_total, col4=recuperado_cantado, col5=piso_60,
-//    col6=acumulado_total, col7=total_alcance, col8=alcance_corriente
-//  Luego 3 bloques de vendedora (9 cols cada una):
-//    name, meta_mes, acumulado_mes, alcance_mes, faltan_mes,
-//    recuperado, acumulado_total, alcance_total, ticket_promedio, volumen,
-//    piso60_monto, piso101_monto, piso121_monto, piso151_monto
-//
-//  Si el Sheet no tiene esa estructura exacta, los datos hardcoded
-//  sirven como fallback automático.
-// ─────────────────────────────────────────────
-function parseTSV(raw) {
-  try {
-    const lines = raw.trim().split('\n').map(l => l.split('\t').map(c => c.trim()));
-    if (lines.length < 2) return null;
+            if (loading) return <div className="h-screen flex items-center justify-center font-black text-[#671E75] animate-pulse uppercase tracking-widest">Leyendo datos.csv...</div>;
+            if (data.length === 0) return <div className="h-screen flex items-center justify-center text-red-500 font-bold p-10 text-center">No se encontraron datos. <br/> Revisa que el archivo se llame 'datos.csv' y las columnas coincidan.</div>;
 
-    // Detectar si primera fila es encabezado
-    const startRow = isNaN(Number(lines[0][1])) ? 1 : 0;
-    const dataByMonth = {};
-    const quarterlyData = {};
+            const current = data.find(d => d.mes === activeMonth) || data[0];
 
-    for (let i = startRow; i < lines.length; i++) {
-      const r = lines[i];
-      if (!r[0] || r[0] === '') continue;
-
-      const mes = r[0];
-      const n = (idx) => parseFloat(r[idx]) || 0;
-
-      // Equipo (cols 1-8)
-      const equipo = {
-        meta_corriente:     n(1),
-        acumulado_corriente:n(2),
-        recuperado_total:   n(3),
-        recuperado_cantado: n(4),
-        piso_60:            n(5),
-        acumulado_total:    n(6),
-        total_alcance:      n(7),
-        alcance_corriente:  n(8)
-      };
-
-      // Vendedoras: offset 9, cada vendedora ocupa 14 columnas
-      const vendedoras = [];
-      const vOffset = 9;
-      const vCols = 14;
-      const numVendedoras = 3;
-      for (let v = 0; v < numVendedoras; v++) {
-        const o = vOffset + v * vCols;
-        const name = r[o] || `Vendedora ${v+1}`;
-        if (!name || name === '') continue;
-        vendedoras.push({
-          name,
-          meta_mes:       n(o+1),
-          acumulado_mes:  n(o+2),
-          alcance_mes:    n(o+3),
-          faltan_mes:     n(o+4),
-          recuperado:     n(o+5),
-          acumulado_total:n(o+6),
-          alcance_total:  n(o+7),
-          ticket_promedio:n(o+8),
-          volumen:        n(o+9),
-          pisos: [
-            { label:"60%",  monto: n(o+10) },
-            { label:"101%", monto: n(o+11) },
-            { label:"121%", monto: n(o+12) },
-            { label:"151%", monto: n(o+13) }
-          ]
-        });
-      }
-
-      if (vendedoras.length === 0) continue;
-      dataByMonth[mes] = { equipo, vendedoras };
-    }
-
-    if (Object.keys(dataByMonth).length === 0) return null;
-
-    // Reconstruir datos trimestrales automáticamente de los meses cargados
-    const meses = Object.keys(dataByMonth);
-    const q1Meses = ["Enero","Febrero","Marzo"].filter(m => dataByMonth[m]);
-    const q2Meses = ["Abril","Mayo","Junio"].filter(m => dataByMonth[m]);
-
-    const buildQ = (qMeses) => {
-      if (qMeses.length === 0) return null;
-      const mensual = qMeses.map(m => ({
-        mes: m,
-        revenue: dataByMonth[m].equipo.acumulado_total,
-        ticket: dataByMonth[m].vendedoras.reduce((s,v) => s + (v.ticket_promedio || 0), 0) / dataByMonth[m].vendedoras.filter(v=>v.ticket_promedio>0).length || 0
-      }));
-      const totalRev = mensual.reduce((s,m) => s+m.revenue, 0);
-      const totalTicket = mensual.reduce((s,m) => s+m.ticket, 0) / mensual.length;
-      // Metas trimestrales: suma de metas mensuales del equipo
-      const metaRev = qMeses.reduce((s,m) => s + dataByMonth[m].equipo.meta_corriente, 0);
-      return {
-        meta_revenue: metaRev,
-        output_revenue: totalRev,
-        alcance_revenue: metaRev > 0 ? Math.round((totalRev/metaRev)*100) : 100,
-        meta_ticket: 6500,
-        output_ticket: Math.round(totalTicket),
-        alcance_ticket: Math.round((totalTicket/6500)*100),
-        mensual
-      };
-    };
-
-    const q1 = buildQ(q1Meses);
-    const q2 = buildQ(q2Meses);
-    if (q1) quarterlyData["Q1"] = q1;
-    if (q2) quarterlyData["Q2"] = q2;
-
-    // Fallback: si no hay Q, usar estáticos
-    if (!q1) quarterlyData["Q1"] = QUARTERLY_DATA_STATIC["Q1"];
-    if (!q2) quarterlyData["Q2"] = QUARTERLY_DATA_STATIC["Q2"];
-
-    return { dataByMonth, quarterlyData };
-  } catch(e) {
-    console.error("Error parseando TSV:", e);
-    return null;
-  }
-}
-
-// ─────────────────────────────────────────────
-//  UTILIDADES
-// ─────────────────────────────────────────────
-const fmt = (val) => new Intl.NumberFormat('es-MX', {
-  style:'currency', currency:'MXN', maximumFractionDigits:0
-}).format(val || 0);
-
-// ─────────────────────────────────────────────
-//  COMPONENTES UI
-// ─────────────────────────────────────────────
-const {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, ReferenceLine, Label, Cell,
-  LabelList, Legend, PieChart, Pie
-} = Recharts;
-
-const { useState, useEffect, useMemo, useCallback } = React;
-
-// Barra de progreso
-const ProgressBar = ({ progress, color = '#772583' }) => (
-  <div style={{ width:'100%', background:'#E2E8F0', height:6, borderRadius:3, marginTop:6, overflow:'hidden' }}>
-    <div style={{
-      height:'100%', borderRadius:3,
-      background: color,
-      width: `${Math.min(100, isNaN(progress) ? 0 : progress)}%`,
-      transition: 'width 1s ease-out'
-    }} />
-  </div>
-);
-
-// Tarjeta grande de acumulado
-const AcumuladoCard = ({ current, target, percentage }) => {
-  const ok = percentage >= 100;
-  const deficit = target - current;
-  return (
-    <div style={{
-      background: ok ? '#15803d' : '#fff',
-      border: ok ? '1px solid #16a34a' : '1px solid rgba(103,30,117,0.1)',
-      borderRadius: '2rem',
-      padding: '1.5rem',
-      marginBottom: '1.5rem',
-      display:'flex', flexWrap:'wrap',
-      alignItems:'center', justifyContent:'space-between', gap:'1.5rem',
-      boxShadow: ok ? '0 10px 40px rgba(22,163,74,0.2)' : '0 2px 8px rgba(0,0,0,0.04)'
-    }}>
-      {/* izquierda */}
-      <div style={{flex:1, minWidth:200}}>
-        <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:8}}>
-          <div style={{width:8,height:8,borderRadius:'50%',background: ok?'#fff':'#0F172A'}} />
-          <span style={{fontSize:10,fontWeight:900,letterSpacing:'0.2em',textTransform:'uppercase',color:ok?'rgba(255,255,255,0.7)':'#94A3B8'}}>
-            Acumulado Total del Equipo
-          </span>
-        </div>
-        <div style={{fontSize:'2.8rem',fontWeight:900,letterSpacing:'-0.03em',color:ok?'#fff':'#0F172A',lineHeight:1}}>
-          {fmt(current)}
-        </div>
-        <div style={{display:'flex',alignItems:'center',gap:8,marginTop:8}}>
-          <span style={{fontSize:11,fontWeight:700,color:ok?'rgba(255,255,255,0.6)':'#94A3B8'}}>Meta: {fmt(target)}</span>
-          <span style={{
-            fontSize:9,fontWeight:900,padding:'2px 8px',borderRadius:12,
-            background:ok?'rgba(255,255,255,0.2)':'#F1F5F9',
-            color:ok?'#fff':'#475569', letterSpacing:'0.08em', textTransform:'uppercase'
-          }}>Equipo Total</span>
-        </div>
-      </div>
-
-      {/* centro */}
-      <div style={{display:'flex',flexDirection:'column',alignItems:'center',minWidth:160}}>
-        {ok ? (
-          <>
-            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{marginBottom:6}}>
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-            </svg>
-            <span style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.15em',color:'#fff'}}>¡Meta Lograda!</span>
-          </>
-        ) : (
-          <>
-            <span style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#EF4444',marginBottom:4}}>Faltante para Meta</span>
-            <span style={{fontSize:'1.4rem',fontWeight:900,color:'#EF4444'}}>{fmt(deficit > 0 ? deficit : 0)}</span>
-            <span style={{fontSize:9,fontWeight:700,color:'#F87171',marginTop:2,fontStyle:'italic'}}>Acción requerida</span>
-          </>
-        )}
-      </div>
-
-      {/* círculo */}
-      <div style={{display:'flex',alignItems:'center',justifyContent:'center',minWidth:100}}>
-        <svg width="96" height="96" style={{transform:'rotate(-90deg)'}}>
-          <circle cx="48" cy="48" r="40" stroke={ok?'rgba(255,255,255,0.3)':'#F1F5F9'} strokeWidth="8" fill="transparent"/>
-          <circle cx="48" cy="48" r="40"
-            stroke={ok?'#fff':'#772583'} strokeWidth="8" fill="transparent"
-            strokeDasharray="251.2"
-            strokeDashoffset={251.2 - (251.2 * Math.min(percentage,100)) / 100}
-            style={{transition:'stroke-dashoffset 1s ease-out'}}
-          />
-        </svg>
-        <div style={{position:'absolute',display:'flex',flexDirection:'column',alignItems:'center'}}>
-          <span style={{fontSize:'1.1rem',fontWeight:900,color:ok?'#fff':'#0F172A'}}>{percentage}%</span>
-          <span style={{fontSize:8,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:ok?'rgba(255,255,255,0.6)':'#94A3B8'}}>Alcance</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Tarjeta métrica pequeña
-const MetricCard = ({ title, value, label, subLabel, accentColor='#772583', progress }) => (
-  <div style={{
-    background:'#fff', border:'1px solid rgba(103,30,117,0.08)',
-    borderRadius:'1.5rem', padding:'1.25rem',
-    boxShadow:'0 2px 8px rgba(0,0,0,0.04)', height:'100%',
-    display:'flex', flexDirection:'column'
-  }}>
-    <div style={{width:24,height:4,borderRadius:2,background:accentColor,marginBottom:8}} />
-    <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.15em',color:'#94A3B8',marginBottom:4}}>{title}</p>
-    <p style={{fontSize:'1.1rem',fontWeight:900,color:'#0F172A',marginBottom:4}}>{value}</p>
-    <div style={{marginTop:'auto'}}>
-      <p style={{fontSize:10,fontWeight:700,color:accentColor}}>{label}</p>
-      <p style={{fontSize:9,fontWeight:700,color:'#94A3B8',textTransform:'uppercase'}}>{subLabel}</p>
-      {progress !== undefined && <ProgressBar progress={progress} color={accentColor} />}
-    </div>
-  </div>
-);
-
-// Tooltip personalizado
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload || !payload.length) return null;
-  const total = payload.reduce((s,e) => s+e.value, 0);
-  return (
-    <div style={{background:'#fff',padding:'1rem',borderRadius:'1rem',boxShadow:'0 10px 30px rgba(0,0,0,0.12)',border:'1px solid #F1F5F9',minWidth:200}}>
-      <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8',marginBottom:8,paddingBottom:8,borderBottom:'1px solid #F1F5F9'}}>{label}</p>
-      {payload.map((e,i) => {
-        const pct = total > 0 ? ((e.value/total)*100).toFixed(1) : 0;
-        return (
-          <div key={i} style={{marginBottom:6}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:12}}>
-              <div style={{display:'flex',alignItems:'center',gap:6}}>
-                <div style={{width:8,height:8,borderRadius:2,background:e.fill}} />
-                <span style={{fontSize:11,fontWeight:700,color:'#475569',textTransform:'capitalize'}}>{e.name}</span>
-              </div>
-              <span style={{fontSize:11,fontWeight:900,color:'#0F172A'}}>{pct}%</span>
-            </div>
-            <p style={{fontSize:10,color:'#94A3B8',marginLeft:14}}>{fmt(e.value)}</p>
-          </div>
-        );
-      })}
-      <div style={{borderTop:'1px solid #F1F5F9',paddingTop:8,marginTop:4,display:'flex',justifyContent:'space-between'}}>
-        <span style={{fontSize:9,fontWeight:900,textTransform:'uppercase',color:'#0F172A'}}>Total</span>
-        <span style={{fontSize:11,fontWeight:900,color:'#671E75'}}>{fmt(total)}</span>
-      </div>
-    </div>
-  );
-};
-
-// Hitos de comisión
-const MilestoneProgress = ({ name, current, milestones }) => {
-  const maxMonto = milestones && milestones.length > 0 ? milestones[milestones.length-1].monto : 1;
-  const progressPct = maxMonto > 0 ? (current/maxMonto)*100 : 0;
-
-  return (
-    <div style={{
-      background:'#fff', border:'1px solid rgba(103,30,117,0.08)',
-      borderRadius:'2.5rem', padding:'2rem 2.5rem 2.5rem',
-      boxShadow:'0 2px 8px rgba(0,0,0,0.04)', marginBottom:16
-    }}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'3.5rem'}}>
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <div style={{width:10,height:10,borderRadius:'50%',background:'#772583',boxShadow:'0 2px 8px rgba(119,37,131,0.3)'}} />
-          <h4 style={{fontWeight:900,fontSize:13,textTransform:'uppercase',letterSpacing:'0.2em',color:'#0F172A'}}>Pisos {name}</h4>
-        </div>
-        <div style={{padding:'6px 16px',background:'#F7EEF8',borderRadius:20,border:'1px solid rgba(103,30,117,0.15)'}}>
-          <span style={{fontSize:13,fontWeight:900,color:'#671E75'}}>{fmt(current)}</span>
-        </div>
-      </div>
-
-      <div style={{position:'relative', paddingBottom: 80, paddingTop: 12, paddingLeft:16, paddingRight:16}}>
-        {/* track */}
-        <div style={{position:'absolute',height:12,background:'#F1F5F9',left:16,right:16,top:8,borderRadius:6,boxShadow:'inset 0 2px 4px rgba(0,0,0,0.06)'}} />
-        {/* fill */}
-        <div style={{
-          position:'absolute', height:12,
-          background:'linear-gradient(90deg, #671E75, #B14EB5)',
-          left:16, top:8, borderRadius:6,
-          width:`calc(${Math.min(100,progressPct)}% - 32px)`,
-          boxShadow:'0 4px 12px rgba(119,37,131,0.2)',
-          transition:'width 1s ease-out'
-        }} />
-
-        {/* marcadores */}
-        <div style={{position:'relative',display:'flex',width:'100%'}}>
-          {milestones && milestones.map((m, idx) => {
-            if (m.monto === 0 && idx > 0) return null;
-            const isReached = current >= m.monto && m.monto > 0;
-            const leftPct = maxMonto > 0 ? (m.monto/maxMonto)*100 : 0;
             return (
-              <div key={idx} style={{
-                position:'absolute',
-                left:`${leftPct}%`,
-                transform:'translateX(-50%)',
-                display:'flex',flexDirection:'column',alignItems:'center'
-              }}>
-                <div style={{
-                  width:20, height:20, borderRadius:'50%',
-                  border: isReached ? '3px solid #fff' : '3px solid #E2E8F0',
-                  background: isReached ? '#772583' : '#fff',
-                  boxShadow: isReached ? '0 2px 8px rgba(119,37,131,0.4)' : 'none',
-                  zIndex:2, transition:'all 0.5s'
-                }} />
-                <div style={{marginTop:16,display:'flex',flexDirection:'column',alignItems:'center',whiteSpace:'nowrap'}}>
-                  <span style={{fontSize:12,fontWeight:900,color: isReached?'#671E75':'#94A3B8',letterSpacing:'-0.01em'}}>{m.label}</span>
-                  <span style={{fontSize:10,fontWeight:700,color:'#94A3B8',marginTop:2}}>{fmt(m.monto)}</span>
-                  {!isReached && m.monto > 0 && (
-                    <div style={{marginTop:6,padding:'2px 6px',background:'#FEF2F2',borderRadius:6,border:'1px solid #FECACA'}}>
-                      <span style={{fontSize:9,fontWeight:900,color:'#EF4444',textTransform:'uppercase',letterSpacing:'0.05em'}}>
-                        Faltan: {fmt(m.monto-current)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────
-//  APP PRINCIPAL
-// ─────────────────────────────────────────────
-function App() {
-  const [dataByMonth, setDataByMonth] = useState(DATA_BY_MONTH_STATIC);
-  const [quarterlyData, setQuarterlyData] = useState(QUARTERLY_DATA_STATIC);
-  const [loadingSheet, setLoadingSheet] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(null);
-  const [sheetError, setSheetError] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [selectedMonth, setSelectedMonth] = useState("Abril");
-  const [selectedQ, setSelectedQ] = useState("Q1");
-
-  const currentDayOfMonth = 15;
-  const currentDaysTranscurridos = 30 + currentDayOfMonth;
-  const totalVentanaDays = 60;
-
-  // ── Carga del Sheet ──
-  const fetchSheet = useCallback(async (silent=false) => {
-    if (!silent) setLoadingSheet(true);
-    else setRefreshing(true);
-    try {
-      const res = await fetch(SHEET_URL + `&_cb=${Date.now()}`);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const raw = await res.text();
-      const parsed = parseTSV(raw);
-      if (parsed) {
-        setDataByMonth(parsed.dataByMonth);
-        setQuarterlyData(parsed.quarterlyData);
-        setSheetError(false);
-        setLastUpdated(new Date());
-        // Asegurarnos que el mes seleccionado existe
-        const meses = Object.keys(parsed.dataByMonth);
-        if (meses.length && !parsed.dataByMonth[selectedMonth]) {
-          setSelectedMonth(meses[meses.length-1]);
-        }
-      } else {
-        setSheetError(true);
-      }
-    } catch(e) {
-      console.warn("No se pudo cargar el Sheet, usando datos estáticos.", e);
-      setSheetError(true);
-    } finally {
-      setLoadingSheet(false);
-      setRefreshing(false);
-    }
-  }, [selectedMonth]);
-
-  useEffect(() => {
-    fetchSheet(false);
-    const interval = setInterval(() => fetchSheet(true), AUTO_REFRESH_MS);
-    return () => clearInterval(interval);
-  }, []);
-
-  // ── Datos derivados ──
-  const data = useMemo(() => dataByMonth[selectedMonth] || Object.values(dataByMonth)[0], [dataByMonth, selectedMonth]);
-  const qData = useMemo(() => quarterlyData[selectedQ] || Object.values(quarterlyData)[0], [quarterlyData, selectedQ]);
-
-  const compositionData = useMemo(() => [
-    { name:'Renovaciones', value: data.equipo.acumulado_corriente, color:'#9333EA' },
-    { name:'Recuperado',   value: data.equipo.recuperado_total,    color:'#10B981' }
-  ].filter(d => d.value > 0), [data]);
-
-  const projections = useMemo(() => data.vendedoras.map(v => {
-    if (v.meta_mes === 0) return null;
-    const dailyAvg = v.acumulado_total / currentDaysTranscurridos;
-    const projected = dailyAvg * totalVentanaDays;
-    const pace = (projected / v.meta_mes) * 100;
-    return {
-      name: v.name,
-      current: v.acumulado_total,
-      projected,
-      pace: pace.toFixed(0),
-      status: pace >= 100 ? 'success' : pace >= 85 ? 'warning' : 'danger'
-    };
-  }).filter(Boolean), [data, currentDaysTranscurridos, totalVentanaDays]);
-
-  const qAnalysis = useMemo(() => {
-    if (!qData || !qData.mensual.length) return null;
-    const sorted = [...qData.mensual].sort((a,b) => b.revenue-a.revenue);
-    const best = sorted[0];
-    const total = qData.mensual.reduce((s,m) => s+m.revenue, 0);
-    const avg = total / qData.mensual.length;
-    return {
-      bestMonthName: best.mes,
-      performanceRatio: (((best.revenue/avg)-1)*100).toFixed(1)
-    };
-  }, [qData]);
-
-  const mainChartData = [{ name:'Equipo Total', renovaciones: data.equipo.acumulado_corriente, recuperado: data.equipo.recuperado_total }];
-  const sellersChartData = useMemo(() => data.vendedoras.map(v => ({
-    name: v.name, renovaciones: v.acumulado_mes, recuperado: v.recuperado, total: v.acumulado_total
-  })), [data]);
-  const maxQRevenue = Math.max(...(qData.mensual || []).map(d => d.revenue));
-  const meses = Object.keys(dataByMonth);
-
-  if (loadingSheet) return (
-    <div>
-      <div className="accent-bar" />
-      <div className="loader-wrap">
-        <div className="loader-logo">Morada<span>Uno</span></div>
-        <div className="loader-bar"><div className="loader-bar-inner" /></div>
-        <p className="loader-text">Cargando datos del dashboard…</p>
-      </div>
-    </div>
-  );
-
-  return (
-    <div style={{ minHeight:'100vh', background:'#F4F0F5', fontFamily:"'Figtree', sans-serif", paddingBottom:80 }}>
-
-      {/* Accent bar */}
-      <div className="accent-bar" />
-
-      {/* Navbar */}
-      <nav style={{
-        background:'#fff', borderBottom:'1px solid rgba(103,30,117,0.1)',
-        position:'sticky', top:0, zIndex:50,
-        padding:'0.75rem 1.5rem',
-        display:'flex', flexWrap:'wrap', alignItems:'center',
-        justifyContent:'space-between', gap:12,
-        boxShadow:'0 1px 4px rgba(0,0,0,0.06)'
-      }}>
-        {/* Logo */}
-        <div style={{display:'flex',alignItems:'center',gap:10}}>
-          <svg width="30" height="24" viewBox="0 0 36 28" fill="none">
-            <path d="M0 28V8L9 0L18 8L27 0L36 8V28H27V17L18 25L9 17V28H0Z" fill="#671E75"/>
-            <path d="M9 0L18 8L9 17V0Z" fill="#B14EB5"/>
-            <path d="M27 0L36 8L27 17V0Z" fill="#B14EB5"/>
-          </svg>
-          <span style={{fontWeight:900,fontSize:17,color:'#671E75',letterSpacing:'-0.02em'}}>
-            MoradaUno <span style={{color:'#BCBEC0',fontWeight:300}}>|</span>{' '}
-            <span style={{color:'#772583'}}>Renewal Sales</span>
-          </span>
-        </div>
-
-        {/* Controles */}
-        <div style={{display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}}>
-          {/* Estado Sheet */}
-          {sheetError && (
-            <span style={{
-              fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',
-              color:'#B45309',background:'#FFFBEB',border:'1px solid #FDE68A',
-              padding:'3px 10px',borderRadius:20
-            }}>⚠ Datos estáticos</span>
-          )}
-          {lastUpdated && !sheetError && (
-            <span style={{
-              fontSize:9,fontWeight:700,color:'#94A3B8',
-              display:'flex',alignItems:'center',gap:4
-            }}>
-              <span style={{width:6,height:6,borderRadius:'50%',background:'#10B981',display:'inline-block'}} />
-              {lastUpdated.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}
-            </span>
-          )}
-
-          {/* Refresh */}
-          <button className={`refresh-chip ${refreshing?'spinning':''}`} onClick={() => fetchSheet(true)} title="Recargar datos">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-            </svg>
-            Actualizar
-          </button>
-
-          {/* Selector mes */}
-          <div style={{position:'relative'}}>
-            <select value={selectedMonth} onChange={e=>setSelectedMonth(e.target.value)} style={{
-              appearance:'none', background:'#F4F0F5',
-              border:'1px solid rgba(103,30,117,0.18)', borderRadius:12,
-              padding:'6px 32px 6px 12px', fontFamily:"'Figtree',sans-serif",
-              fontSize:10, fontWeight:900, textTransform:'uppercase', letterSpacing:'0.1em',
-              color:'#0F172A', cursor:'pointer', outline:'none'
-            }}>
-              {meses.map(m => <option key={m} value={m}>{m} 2026</option>)}
-            </select>
-            <span style={{position:'absolute',right:8,top:'50%',transform:'translateY(-50%)',pointerEvents:'none',color:'#94A3B8',fontSize:10}}>▾</span>
-          </div>
-        </div>
-      </nav>
-
-      {/* Contenido */}
-      <div style={{maxWidth:1200, margin:'0 auto', padding:'1.5rem 1rem'}}>
-
-        {/* Acumulado total */}
-        <AcumuladoCard
-          current={data.equipo.acumulado_total}
-          target={data.equipo.meta_corriente}
-          percentage={data.equipo.total_alcance}
-        />
-
-        {/* 3 métricas */}
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:24}} className="md-grid-3">
-          <MetricCard
-            title="Meta Renovaciones"
-            value={fmt(data.equipo.meta_corriente)}
-            label={`Alcance: ${data.equipo.alcance_corriente}%`}
-            subLabel={`Faltan: ${fmt(Math.max(0, data.equipo.meta_corriente - data.equipo.acumulado_corriente))}`}
-            accentColor="#772583"
-            progress={data.equipo.alcance_corriente}
-          />
-          <MetricCard
-            title="Revenue Recuperado"
-            value={fmt(data.equipo.recuperado_total)}
-            label={`Volumen: ${data.equipo.recuperado_cantado}`}
-            subLabel="Impacto en Mes"
-            accentColor="#10B981"
-            progress={data.equipo.recuperado_total > 0 ? 30 : 0}
-          />
-          <MetricCard
-            title="Piso Equipo 60%"
-            value={fmt(data.equipo.piso_60)}
-            label="Mínimo Requerido"
-            subLabel={data.equipo.acumulado_total >= data.equipo.piso_60 ? "SUPERADO" : "EN PROGRESO"}
-            accentColor="#DB2777"
-            progress={data.equipo.acumulado_total >= data.equipo.piso_60 ? 100 : (data.equipo.acumulado_total/(data.equipo.piso_60||1)*100)}
-          />
-        </div>
-
-        {/* Gráfico principal - Revenue Mensual */}
-        <div style={{background:'#fff',borderRadius:'2rem',border:'1px solid rgba(103,30,117,0.08)',padding:'1.5rem',marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'1.5rem',flexWrap:'wrap',gap:8}}>
-            <div>
-              <h3 style={{fontWeight:700,color:'#1E293B',fontSize:15,marginBottom:4,display:'flex',alignItems:'center',gap:8}}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#772583" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                Revenue Mensual — {selectedMonth}
-              </h3>
-              <p style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.08em',color:'#94A3B8'}}>Estructura de Ingresos por Tipo</p>
-            </div>
-            <div style={{textAlign:'right'}}>
-              <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.15em',color:'#94A3B8'}}>Total Logrado</p>
-              <p style={{fontSize:'1.3rem',fontWeight:900,color:'#671E75'}}>{fmt(data.equipo.acumulado_total)}</p>
-            </div>
-          </div>
-          <div style={{height:260}}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={mainChartData} margin={{top:20,right:30,left:0,bottom:0}}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize:12,fontWeight:800,fill:'#94A3B8'}} />
-                <YAxis hide domain={[0, Math.max(data.equipo.meta_corriente, data.equipo.acumulado_total)*1.1]} />
-                <Tooltip cursor={{fill:'#F7EEF8'}} content={<CustomTooltip />} />
-                <Bar dataKey="renovaciones" stackId="s" fill="#9333EA" barSize={100} name="Renovaciones" />
-                <Bar dataKey="recuperado"   stackId="s" fill="#10B981" barSize={100} radius={[8,8,0,0]} name="Recuperado" />
-                {data.equipo.meta_corriente > 0 && (
-                  <ReferenceLine y={data.equipo.meta_corriente} stroke="#EF4444" strokeWidth={2} strokeDasharray="4 4">
-                    <Label value="OBJETIVO 100%" position="top" offset={10} style={{fill:'#EF4444',fontSize:10,fontWeight:900,letterSpacing:'1px'}} />
-                  </ReferenceLine>
-                )}
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Composición pie */}
-        <div style={{background:'#fff',borderRadius:'2rem',border:'1px solid rgba(103,30,117,0.08)',padding:'1.5rem',marginBottom:24,boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}}>
-          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:'1.5rem'}}>
-            <div style={{padding:8,background:'#F7EEF8',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'center'}}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#772583" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
-            </div>
-            <div>
-              <h4 style={{fontWeight:900,fontSize:12,textTransform:'uppercase',letterSpacing:'0.1em',color:'#0F172A'}}>Impacto de Recuperación</h4>
-              <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.08em',color:'#94A3B8',marginTop:2}}>Composición del Revenue Recibido</p>
-            </div>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'2rem',alignItems:'center'}} className="md-grid-2">
-            <div style={{height:192,position:'relative'}}>
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie data={compositionData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                    {compositionData.map((e,i) => <Cell key={i} fill={e.color} />)}
-                  </Pie>
-                  <Tooltip formatter={(v) => fmt(v)} contentStyle={{borderRadius:12,border:'none',boxShadow:'0 10px 20px rgba(0,0,0,0.1)',fontSize:12}} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',pointerEvents:'none'}}>
-                <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',color:'#94A3B8',marginBottom:2}}>Total</p>
-                <p style={{fontSize:14,fontWeight:900,color:'#0F172A',lineHeight:1}}>
-                  {Math.round((data.equipo.recuperado_total/(data.equipo.acumulado_total||1))*100)}%
-                </p>
-                <p style={{fontSize:8,fontWeight:900,textTransform:'uppercase',color:'#10B981'}}>Recuperado</p>
-              </div>
-            </div>
-            <div>
-              {compositionData.map((item,i) => (
-                <div key={i} style={{marginBottom:16}}>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
-                    <div style={{display:'flex',alignItems:'center',gap:8}}>
-                      <div style={{width:8,height:8,borderRadius:'50%',background:item.color}} />
-                      <span style={{fontSize:11,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.05em',color:'#334155'}}>{item.name}</span>
-                    </div>
-                    <span style={{fontSize:12,fontWeight:900,color:'#0F172A'}}>
-                      {Math.round((item.value/(data.equipo.acumulado_total||1))*100)}%
-                    </span>
-                  </div>
-                  <div style={{background:'#F8FAFC',height:8,borderRadius:4,overflow:'hidden'}}>
-                    <div style={{height:'100%',borderRadius:4,background:item.color,width:`${(item.value/(data.equipo.acumulado_total||1))*100}%`,transition:'width 1s ease-out'}} />
-                  </div>
-                  <p style={{fontSize:10,fontWeight:700,color:'#94A3B8',marginTop:3}}>{fmt(item.value)}</p>
-                </div>
-              ))}
-              <div style={{padding:'10px 14px',background:'#F7EEF8',borderRadius:12,border:'1px solid rgba(103,30,117,0.1)',display:'flex',gap:8,marginTop:8}}>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B14EB5" strokeWidth="2" strokeLinecap="round" style={{marginTop:1,flexShrink:0}}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <p style={{fontSize:10,fontWeight:500,color:'#475569',lineHeight:1.6,fontStyle:'italic'}}>
-                  {data.equipo.recuperado_total > 0
-                    ? `La recuperación de cartera aportó ${fmt(data.equipo.recuperado_total)}, representando un impulsor crítico para el alcance del ${data.equipo.total_alcance}% de la meta.`
-                    : "Este mes se ha fondeado exclusivamente con renovaciones corrientes de calendario."}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Cards vendedoras */}
-        <p style={{fontSize:10,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.15em',color:'#94A3B8',marginBottom:12}}>Estatus por Vendedora — {selectedMonth}</p>
-        <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12,marginBottom:24}} className="md-grid-3">
-          {data.vendedoras.map(v => (
-            <div key={v.name} style={{background:'#fff',borderRadius:'2rem',border:'1px solid rgba(103,30,117,0.08)',padding:'1.25rem',boxShadow:'0 2px 8px rgba(0,0,0,0.04)',display:'flex',flexDirection:'column'}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-                <h4 style={{fontWeight:900,fontSize:14,textTransform:'uppercase',letterSpacing:'0.05em',color:'#0F172A'}}>{v.name}</h4>
-                <span style={{fontSize:8,fontWeight:900,letterSpacing:'0.05em',padding:'3px 8px',borderRadius:6,background:'#F7EEF8',color:'#671E75',textTransform:'uppercase'}}>RENEWAL</span>
-              </div>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:12}}>
-                {[
-                  ['Meta Mes', fmt(v.meta_mes), '#94A3B8'],
-                  ['Alcance Mes', `${v.alcance_mes}%`, '#9333EA'],
-                  ['Recuperado', fmt(v.recuperado), '#10B981'],
-                  ['Faltante', fmt(v.faltan_mes > 0 ? v.faltan_mes : 0), '#EF4444'],
-                ].map(([label, val, color]) => (
-                  <div key={label}>
-                    <p style={{fontSize:8,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.08em',color:'#94A3B8',marginBottom:3}}>{label}</p>
-                    <p style={{fontSize:13,fontWeight:900,color}}>{val}</p>
-                  </div>
-                ))}
-              </div>
-              <div style={{padding:'10px 12px',background:'#F8FAFC',borderRadius:12,border:'1px solid #F1F5F9',marginBottom:12}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:6}}>
-                  <p style={{fontSize:8,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8'}}>Ticket Promedio</p>
-                  <p style={{fontSize:12,fontWeight:900,color:'#671E75'}}>{fmt(v.ticket_promedio)}</p>
-                </div>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                  <p style={{fontSize:8,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8'}}>Volumen Cierre</p>
-                  <p style={{fontSize:11,fontWeight:900,color:'#0F172A'}}>{v.volumen} unidades</p>
-                </div>
-              </div>
-              <div style={{marginTop:'auto',paddingTop:12,borderTop:'1px solid #F8FAFC'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:4}}>
-                  <div>
-                    <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',color:'#94A3B8'}}>Acumulado Total</p>
-                    <p style={{fontSize:15,fontWeight:900,color:'#0F172A'}}>{fmt(v.acumulado_total)}</p>
-                  </div>
-                  <p style={{fontSize:15,fontWeight:900,color:'#671E75'}}>{v.alcance_total}%</p>
-                </div>
-                <ProgressBar progress={v.alcance_total} color="#772583" />
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Gráfico comparativo vendedoras */}
-        <div style={{background:'#fff',borderRadius:'2rem',border:'1px solid rgba(103,30,117,0.08)',padding:'1.5rem',marginBottom:16,boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}}>
-          <h3 style={{fontWeight:700,fontSize:14,color:'#1E293B',marginBottom:4,display:'flex',alignItems:'center',gap:8}}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#772583" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            Comparativa de Resultados por Vendedora
-          </h3>
-          <p style={{fontSize:10,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.08em',color:'#94A3B8',marginBottom:'1.5rem'}}>Desglose Renovaciones vs Recuperado</p>
-          <div style={{height:280}}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sellersChartData} layout="vertical" margin={{top:5,right:120,left:50,bottom:5}}>
-                <CartesianGrid strokeDasharray="3 3" horizontal vertical={false} stroke="#F1F5F9" />
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize:11,fontWeight:900,fill:'#1E1B4B'}} />
-                <Tooltip cursor={{fill:'#F7EEF8'}} content={<CustomTooltip />} />
-                <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{paddingBottom:16,fontSize:10,fontWeight:700,textTransform:'uppercase'}} />
-                <Bar name="Renovaciones" dataKey="renovaciones" stackId="v" fill="#9333EA" barSize={32} />
-                <Bar name="Recuperado"   dataKey="recuperado"   stackId="v" fill="#10B981" barSize={32} radius={[0,8,8,0]}>
-                  <LabelList dataKey="total" position="right" formatter={v=>fmt(v)} style={{fill:'#475569',fontSize:11,fontWeight:900}} offset={10} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Run Rate / Proyecciones */}
-        <div style={{background:'#fff',borderRadius:'2.5rem',border:'1px solid rgba(103,30,117,0.08)',padding:'2rem',marginBottom:32,boxShadow:'0 2px 8px rgba(0,0,0,0.04)',position:'relative',overflow:'hidden'}}>
-          <div style={{position:'absolute',top:0,right:0,color:'#F8FAFC',pointerEvents:'none'}}>
-            <svg width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-            </svg>
-          </div>
-          <div style={{position:'relative',zIndex:1}}>
-            <div style={{display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'flex-start',marginBottom:'2rem',gap:16}}>
-              <div style={{display:'flex',alignItems:'center',gap:14}}>
-                <div style={{padding:12,background:'#0F172A',color:'#fff',borderRadius:20,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div>
-                  <h4 style={{fontWeight:900,fontSize:16,textTransform:'uppercase',letterSpacing:'0.1em',color:'#0F172A',lineHeight:1}}>Análisis de Run Rate (Ventana 60 Días)</h4>
-                  <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8',marginTop:6,display:'flex',alignItems:'center',gap:6}}>
-                    <span style={{width:6,height:6,borderRadius:'50%',background:'#772583',display:'inline-block'}} />
-                    Corte al Día {currentDayOfMonth} del mes actual ({currentDaysTranscurridos} días de gestión)
-                  </p>
-                </div>
-              </div>
-              <div style={{padding:'12px 16px',background:'#F8FAFC',borderRadius:16,border:'1px solid #F1F5F9',maxWidth:280}}>
-                <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.08em',color:'#64748B',marginBottom:4,display:'flex',alignItems:'center',gap:6}}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#772583" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                  Nueva Metodología
-                </p>
-                <p style={{fontSize:10,color:'#94A3B8',fontWeight:500,lineHeight:1.6,fontStyle:'italic'}}>
-                  Ventana de 60 días: Los resultados actuales representan 45 días de avance vs un cierre a los 60 días.
-                </p>
-              </div>
-            </div>
-
-            <div style={{display:'grid',gridTemplateColumns:`repeat(${projections.length},1fr)`,gap:24}} className="md-grid-3">
-              {projections.map((proj, idx) => {
-                const statusColors = {
-                  success: { bg:'#ECFDF5', border:'#D1FAE5', text:'#059669', label:'En Ritmo' },
-                  warning: { bg:'#FFFBEB', border:'#FDE68A', text:'#D97706', label:'Ajustado' },
-                  danger:  { bg:'#FEF2F2', border:'#FECACA', text:'#DC2626', label:'Bajo Ritmo' }
-                };
-                const sc = statusColors[proj.status];
-                return (
-                  <div key={idx}>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                      <span style={{fontSize:12,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#0F172A'}}>{proj.name}</span>
-                      <span style={{fontSize:9,fontWeight:900,padding:'4px 10px',borderRadius:20,textTransform:'uppercase',
-                        background:sc.bg, color:sc.text, border:`1px solid ${sc.border}`}}>
-                        {sc.label}
-                      </span>
-                    </div>
-                    <div style={{background:'#F8FAFC',border:'1px solid #F1F5F9',padding:'1.5rem',borderRadius:'2rem',transition:'all 0.3s'}}>
-                      <div style={{marginBottom:'1.5rem'}}>
-                        <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.12em',color:'#94A3B8',marginBottom:6}}>Cierre Proyectado (Día 60)</p>
-                        <h5 style={{fontSize:'1.4rem',fontWeight:900,color:'#0F172A',letterSpacing:'-0.02em'}}>{fmt(proj.projected)}</h5>
-                        <p style={{fontSize:10,fontWeight:700,color:'#94A3B8',marginTop:4}}>vs {fmt(proj.current)} actuales</p>
-                      </div>
-                      <div>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end',marginBottom:6}}>
-                          <span style={{fontSize:9,fontWeight:900,textTransform:'uppercase',color:'#64748B'}}>Pace / Meta</span>
-                          <span style={{fontSize:14,fontWeight:900,color:proj.status==='success'?'#059669':'#DC2626'}}>{proj.pace}%</span>
+                <div className="max-w-5xl mx-auto p-4 md:p-10 animate-fade">
+                    {/* Header */}
+                    <header className="flex justify-between items-center mb-8 bg-white p-6 rounded-[2rem] shadow-sm border-l-[12px] border-[#671E75]">
+                        <div>
+                            <h1 className="text-3xl font-[900] text-[#671E75] italic tracking-tighter uppercase">Morada<span className="text-teal-500">Uno</span></h1>
+                            <p className="text-[10px] font-black text-gray-400 tracking-[0.3em]">RENEWAL SALES DASHBOARD</p>
                         </div>
-                        <div style={{height:8,background:'#E2E8F0',borderRadius:4,overflow:'hidden'}}>
-                          <div style={{
-                            height:'100%',borderRadius:4,
-                            background:proj.status==='success'?'#10B981':proj.status==='warning'?'#F59E0B':'#EF4444',
-                            width:`${Math.min(100,proj.pace)}%`,transition:'width 1s ease-out'
-                          }} />
+                        <select 
+                            value={activeMonth} 
+                            onChange={(e) => setActiveMonth(e.target.value)}
+                            className="bg-purple-50 border-none font-black px-6 py-3 rounded-2xl text-[#671E75] outline-none cursor-pointer"
+                        >
+                            {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
+                        </select>
+                    </header>
+
+                    {/* KPI Principal */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div className={`lg:col-span-2 p-10 rounded-[3rem] text-white shadow-xl transition-all duration-500 ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
+                            <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-4 opacity-70">Total Cantado Equipo</p>
+                            <h2 className="text-6xl md:text-8xl font-[900] tracking-tighter mb-4">
+                                ${current.total.toLocaleString('es-MX')}
+                            </h2>
+                            <div className="flex justify-between items-end mt-8 pt-8 border-t border-white/20">
+                                <div>
+                                    <p className="text-5xl font-[900]">{Math.round(current.alcance)}%</p>
+                                    <p className="text-[10px] font-bold opacity-70 uppercase">Alcance del Mes</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs font-bold opacity-60">META: ${current.meta.toLocaleString()}</p>
+                                </div>
+                            </div>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
 
-        {/* Pisos / Hitos */}
-        <div style={{display:'flex',alignItems:'center',gap:12,marginBottom:24,padding:'0 4px'}}>
-          <div style={{padding:10,background:'#fff',borderRadius:16,border:'1px solid rgba(103,30,117,0.1)',boxShadow:'0 2px 6px rgba(0,0,0,0.04)',color:'#671E75',display:'flex',alignItems:'center',justifyContent:'center'}}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-          </div>
-          <h3 style={{fontWeight:900,fontSize:13,textTransform:'uppercase',letterSpacing:'0.2em',color:'#0F172A'}}>Hitos de Comisión (Pisos) — {selectedMonth}</h3>
-        </div>
-        {data.vendedoras.map(v => (
-          <MilestoneProgress key={v.name} name={v.name} current={v.acumulado_total} milestones={v.pisos} />
-        ))}
-
-        {/* Desempeño Trimestral */}
-        <div style={{marginTop:60,paddingTop:40,borderTop:'1px solid #F1F5F9'}}>
-          <div style={{display:'flex',flexWrap:'wrap',justifyContent:'space-between',alignItems:'center',marginBottom:32,gap:16}}>
-            <div style={{display:'flex',alignItems:'center',gap:12}}>
-              <div style={{padding:10,background:'#0F172A',color:'#fff',borderRadius:16,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-              </div>
-              <div>
-                <h3 style={{fontWeight:900,fontSize:13,textTransform:'uppercase',letterSpacing:'0.2em',color:'#0F172A'}}>Desempeño Trimestral</h3>
-                <p style={{fontSize:9,fontWeight:700,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8',marginTop:4}}>Histórico Consolidado</p>
-              </div>
-            </div>
-            <div style={{position:'relative'}}>
-              <select value={selectedQ} onChange={e=>setSelectedQ(e.target.value)} style={{
-                appearance:'none', background:'#fff',
-                border:'1px solid #E2E8F0', borderRadius:16, padding:'10px 36px 10px 20px',
-                fontFamily:"'Figtree',sans-serif", fontSize:10, fontWeight:900,
-                textTransform:'uppercase', letterSpacing:'0.15em', color:'#0F172A',
-                cursor:'pointer', outline:'none', boxShadow:'0 1px 4px rgba(0,0,0,0.04)'
-              }}>
-                {Object.keys(quarterlyData).map(q => <option key={q} value={q}>{q} 2026</option>)}
-              </select>
-              <span style={{position:'absolute',right:12,top:'50%',transform:'translateY(-50%)',pointerEvents:'none',color:'#94A3B8',fontSize:10}}>▾</span>
-            </div>
-          </div>
-
-          {/* Revenue + Ticket */}
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}} className="md-grid-2">
-            {[
-              { label:`Revenue ${selectedQ}`, value:fmt(qData.output_revenue), meta:`Meta: ${fmt(qData.meta_revenue)}`, pct:qData.alcance_revenue, color:'#772583', bg:'#F7EEF8', badgeBg:'#F7EEF8', badgeColor:'#671E75' },
-              { label:`Ticket Promedio ${selectedQ}`, value:fmt(qData.output_ticket), meta:`Objetivo: ${fmt(qData.meta_ticket)}`, pct:qData.alcance_ticket, color:'#10B981', bg:'#ECFDF5', badgeBg:'#ECFDF5', badgeColor:'#065F46' }
-            ].map((item,i) => (
-              <div key={i} style={{background:'#fff',padding:'1.5rem',borderRadius:'2rem',border:'1px solid #F1F5F9',boxShadow:'0 2px 6px rgba(0,0,0,0.04)',display:'flex',flexDirection:'column',justifyContent:'space-between'}}>
-                <div>
-                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
-                    <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:item.color}}>{item.label}</p>
-                    <span style={{fontSize:9,fontWeight:900,padding:'3px 8px',borderRadius:12,background:item.badgeBg,color:item.badgeColor}}>{item.pct}%</span>
-                  </div>
-                  <p style={{fontSize:'1.4rem',fontWeight:900,color:'#0F172A'}}>{item.value}</p>
-                  <p style={{fontSize:10,fontWeight:700,color:'#94A3B8',marginTop:4}}>{item.meta}</p>
-                </div>
-                <div style={{marginTop:16}}>
-                  <ProgressBar progress={item.pct} color={item.color} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Gráfico comparativa mensual trimestre */}
-          <div style={{background:'#fff',padding:'2rem 2rem 2.5rem',borderRadius:'3rem',border:'1px solid #F1F5F9',boxShadow:'0 2px 8px rgba(0,0,0,0.04)'}}>
-            <h1 style={{color:'#1a1a1a',fontWeight:900,fontSize:16,letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:48}}>
-              Comparativa Mensual {selectedQ}
-            </h1>
-            <div style={{height:380,width:'100%',marginBottom:40}}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={qData.mensual} margin={{top:40,right:30,left:20,bottom:20}}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f6" />
-                  <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill:'#1a2b4b',fontSize:15,fontWeight:900}} dy={15} />
-                  <YAxis axisLine={false} tickLine={false} tick={{fill:'#9ea7b5',fontSize:12,fontWeight:800}} tickFormatter={v=>`$${v/1000}k`} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="revenue" radius={[16,16,16,16]} barSize={80} name="Revenue">
-                    {qData.mensual.map((e,i) => (
-                      <Cell key={i} fill={e.revenue===maxQRevenue?'#671E75':'#9333EA'} />
-                    ))}
-                    <LabelList dataKey="revenue" position="top" formatter={v=>`$${v.toLocaleString('es-MX')}`} style={{fill:'#1a1a1a',fontWeight:900,fontSize:13}} offset={14} />
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {qAnalysis && (
-              <div style={{borderTop:'1px solid #F1F5F9',paddingTop:32}}>
-                <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:24}} className="md-grid-3">
-                  <div style={{display:'flex',alignItems:'flex-start',gap:14}}>
-                    <div style={{padding:12,background:'#F7EEF8',color:'#671E75',borderRadius:16,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="18" y="3" width="4" height="18"/><rect x="10" y="8" width="4" height="13"/><rect x="2" y="13" width="4" height="8"/></svg>
-                    </div>
-                    <div>
-                      <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8',marginBottom:4}}>Mejor Mes</p>
-                      <h4 style={{fontSize:'1.2rem',fontWeight:900,color:'#0F172A'}}>{qAnalysis.bestMonthName}</h4>
-                      <span style={{fontSize:11,fontWeight:700,color:'#10B981',display:'flex',alignItems:'center',gap:4,marginTop:4}}>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                        Peak
-                      </span>
-                    </div>
-                  </div>
-                  <div style={{borderLeft:'1px solid #F1F5F9',borderRight:'1px solid #F1F5F9',paddingLeft:24,paddingRight:24}}>
-                    <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#94A3B8',marginBottom:4}}>Varianza vs Promedio</p>
-                    <div style={{display:'flex',alignItems:'baseline',gap:8}}>
-                      <span style={{fontSize:'1.4rem',fontWeight:900,color:'#671E75'}}>+{qAnalysis.performanceRatio}%</span>
-                      <span style={{fontSize:9,fontWeight:700,textTransform:'uppercase',color:'#64748B'}}>en {qAnalysis.bestMonthName}</span>
-                    </div>
-                  </div>
-                  <div style={{display:'flex',flexDirection:'column',justifyContent:'center'}}>
-                    <div style={{padding:'12px 16px',background:'#F8FAFC',borderRadius:16,border:'1px solid #F1F5F9'}}>
-                      <p style={{fontSize:9,fontWeight:900,textTransform:'uppercase',letterSpacing:'0.1em',color:'#64748B',marginBottom:4}}>Comportamiento</p>
-                      <p style={{fontSize:11,fontWeight:700,color:'#475569',lineHeight:1.6}}>
-                        Se observa una {qAnalysis.performanceRatio > 10 ? 'concentración significativa' : 'distribución estable'} de ventas hacia el mes de {qAnalysis.bestMonthName}.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <footer style={{marginTop:48,textAlign:'center',fontSize:11,color:'#94A3B8',fontWeight:500}}>
-          Datos en MXN · MoradaUno Renewal Sales Dashboard &copy; 2026 ·{' '}
-          {lastUpdated
-            ? `Última actualización: ${lastUpdated.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}`
-            : 'Datos estáticos'}
-          {sheetError && <span style={{color:'#F59E0B'}}> · ⚠ No se pudo conectar al Sheet</span>}
-        </footer>
-
-      </div>
-    </div>
-  );
-}
-
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<App />);
-</script>
-
-</body>
-</html>
+                        {/* Mix Equipo */}
+                        <div className="bg-white p-8 rounded-[3rem] shadow-md flex flex-col items-center justify-center">
+                            <h3 className="text-[10px] font-black text-gray-400 uppercase mb-6 tracking-widest">Mix por Asesora</h3>
+                            <div className="w-full h-44">
+                                <ResponsiveContainer>
+                                    <PieChart>
+                                        <Pie 
+                                            data={[
+                                                { name: 'Monse', value: current.monse },
+                                                { name: 'Jess', value: current.jess },
+                                                { name: 'Marla', value: current.marla }
+                                            ]} 
+                                            dataKey="value" innerRadius={55} outerRadius={75} paddingAngle={8}
+                                        >
+                                            <Cell fill="#671E75
+                                        
