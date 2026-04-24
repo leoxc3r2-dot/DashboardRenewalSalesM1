@@ -124,5 +124,41 @@
                                             ]} 
                                             dataKey="value" innerRadius={55} outerRadius={75} paddingAngle={8}
                                         >
-                                            <Cell fill="#671E75
-                                        
+                                            <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
+                                        </Pie>
+                                        <Tooltip />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="flex gap-4 mt-4 w-full justify-around">
+                                <div className="text-center"><p className="text-[8px] font-black text-[#671E75]">MONSE</p><p className="text-xs font-bold">${Math.round(current.monse/1000)}k</p></div>
+                                <div className="text-center"><p className="text-[8px] font-black text-teal-500">JESS</p><p className="text-xs font-bold">${Math.round(current.jess/1000)}k</p></div>
+                                <div className="text-center"><p className="text-[8px] font-black text-purple-400">MARLA</p><p className="text-xs font-bold">${Math.round(current.marla/1000)}k</p></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Histórico */}
+                    <div className="bg-white p-10 rounded-[3rem] shadow-md h-80">
+                        <h3 className="text-[10px] font-black text-gray-400 uppercase mb-6 tracking-widest">Evolución Mensual</h3>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={data}>
+                                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: '900', fill: '#CBD5E1'}} />
+                                <Tooltip cursor={{fill: '#F8F6F9', radius: 10}} contentStyle={{borderRadius: '1rem', border: 'none'}} />
+                                <Bar dataKey="total" radius={[10, 10, 0, 0]}>
+                                    {data.map((entry, index) => (
+                                        <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#F1F5F9'} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
