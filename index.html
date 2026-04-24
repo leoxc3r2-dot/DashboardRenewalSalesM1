@@ -6,9 +6,9 @@
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.3/umd/Recharts.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;900&display=swap" rel="stylesheet">
     <style>body { font-family: 'Figtree', sans-serif; background: #F8F6F9; }</style>
 </head>
@@ -16,12 +16,12 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        // Importante: Recharts en modo HTML se usa con el prefijo Recharts.
+        // Extraemos las piezas de las gráficas con cuidado
         const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.Recharts;
 
         function App() {
             const [data, setData] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
+            const [cargando, setCargando] = React.useState(true);
 
             React.useEffect(() => {
                 const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
@@ -30,51 +30,54 @@
                     download: true,
                     header: true,
                     complete: (results) => {
-                        const clean = results.data
-                            .filter(r => r.QMesEquipo)
-                            .map(row => ({
-                                mes: row.QMesEquipo,
-                                monse: parseFloat(row["Monse cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
-                                jess: parseFloat(row["Jess cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
-                                marla: parseFloat(row["Marla cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
+                        const datosLimpios = results.data
+                            .filter(fila => fila.QMesEquipo)
+                            .map(fila => ({
+                                mes: fila.QMesEquipo,
+                                monse: parseFloat(fila["Monse cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
+                                jess: parseFloat(fila["Jess cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
+                                marla: parseFloat(fila["Marla cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
                             }));
-                        setData(clean);
-                        setLoading(false);
+                        setData(datosLimpios);
+                        setCargando(false);
                     }
                 });
             }, []);
 
-            if (loading) return <div className="p-10 text-center font-bold text-purple-700">Cargando datos de MoradaUno...</div>;
+            if (cargando) return <div className="p-20 text-center font-bold text-[#671E75] animate-pulse">Conectando con Google Sheets...</div>;
+
+            const actual = data[data.length - 1] || { monse:0, jess:0, marla:0 };
 
             return (
-                <div className="p-4 md:p-8 max-w-5xl mx-auto">
-                    <h1 className="text-3xl font-black text-[#671E75] mb-8">Ventas MoradaUno</h1>
+                <div className="p-4 md:p-10 max-w-5xl mx-auto">
+                    <h1 className="text-4xl font-black text-[#671E75] mb-2">Ventas MoradaUno</h1>
+                    <p className="text-[#00C7B1] font-bold mb-10 tracking-widest">DASHBOARD REAL-TIME</p>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100">
-                            <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Montserrat</p>
-                            <h2 className="text-2xl font-black text-[#671E75]">${data[data.length-1]?.monse.toLocaleString()}</h2>
+                        <div className="bg-white p-8 rounded-[30px] shadow-xl border-b-4 border-[#671E75]">
+                            <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Montserrat</p>
+                            <h2 className="text-3xl font-black text-[#671E75]">${actual.monse.toLocaleString()}</h2>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100">
-                            <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Jessica</p>
-                            <h2 className="text-2xl font-black text-[#00C7B1]">${data[data.length-1]?.jess.toLocaleString()}</h2>
+                        <div className="bg-white p-8 rounded-[30px] shadow-xl border-b-4 border-[#00C7B1]">
+                            <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Jessica</p>
+                            <h2 className="text-3xl font-black text-[#00C7B1]">${actual.jess.toLocaleString()}</h2>
                         </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100">
-                            <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase">Marla</p>
-                            <h2 className="text-2xl font-black text-purple-400">${data[data.length-1]?.marla.toLocaleString()}</h2>
+                        <div className="bg-white p-8 rounded-[30px] shadow-xl border-b-4 border-purple-400">
+                            <p className="text-[10px] font-black text-gray-400 uppercase mb-2">Marla</p>
+                            <h2 className="text-3xl font-black text-purple-500">${actual.marla.toLocaleString()}</h2>
                         </div>
                     </div>
 
-                    <div className="bg-white p-6 rounded-3xl shadow-sm h-80">
+                    <div className="bg-white p-8 rounded-[40px] shadow-2xl h-[400px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0E6F0" />
-                                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#671E75', fontWeight: 'bold', fontSize: 12}} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eee" />
+                                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#671E75', fontWeight: 'bold'}} />
                                 <YAxis hide />
-                                <Tooltip cursor={{fill: '#F8F6F9'}} />
-                                <Bar dataKey="monse" fill="#671E75" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="jess" fill="#00C7B1" radius={[4, 4, 0, 0]} />
-                                <Bar dataKey="marla" fill="#B14EB5" radius={[4, 4, 0, 0]} />
+                                <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius:'20px', border:'none', boxShadow:'0 10px 15px rgba(0,0,0,0.1)'}} />
+                                <Bar dataKey="monse" fill="#671E75" radius={[10, 10, 0, 0]} />
+                                <Bar dataKey="jess" fill="#00C7B1" radius={[10, 10, 0, 0]} />
+                                <Bar dataKey="marla" fill="#B14EB5" radius={[10, 10, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
