@@ -2,19 +2,15 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Ventas MoradaUno</title>
+    <title>Dashboard MoradaUno</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
     <script src="https://unpkg.com/recharts/umd/Recharts.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;900&display=swap" rel="stylesheet">
-    
-    <style>
-        body { font-family: 'Figtree', sans-serif; background-color: #F8F6F9; }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;900&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Figtree', sans-serif; background: #F8F6F9; }</style>
 </head>
 <body>
     <div id="root"></div>
@@ -23,17 +19,18 @@
         const { useState, useEffect } = React;
         const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = Recharts;
 
-        const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
-
-        const Dashboard = () => {
+        function App() {
             const [data, setData] = useState([]);
-            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
 
             useEffect(() => {
-                Papa.parse(GOOGLE_SHEET_URL, {
+                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
+                
+                Papa.parse(url, {
                     download: true,
                     header: true,
                     complete: (results) => {
+                        console.log("Datos recibidos:", results.data);
                         const clean = results.data
                             .filter(r => r.QMesEquipo)
                             .map(row => ({
@@ -43,60 +40,52 @@
                                 marla: parseFloat(row["Marla cantado"]?.replace(/[^0-9.-]+/g, "") || 0),
                             }));
                         setData(clean);
-                        setLoading(false);
-                    }
+                    },
+                    error: (err) => setError(err.message)
                 });
             }, []);
 
-            if (loading) return <div className="p-20 text-center font-bold text-purple-800">Cargando datos...</div>;
-
-            const actual = data[data.length - 1] || {};
+            if (error) return <div className="p-10 text-red-500">Error: {error}</div>;
+            if (data.length === 0) return <div className="p-10 text-purple-700 font-bold">Cargando datos de Google Sheets...</div>;
 
             return (
-                <div className="p-4 md:p-8 max-w-6xl mx-auto">
-                    <header className="mb-8">
-                        <h1 className="text-3xl font-black text-[#671E75]">Ventas <span className="text-[#00C7B1]">MoradaUno</span></h1>
-                        <p className="text-gray-500 font-bold">Seguimiento Real-Time 2026</p>
-                    </header>
-
-                    {/* Tarjetas de Resumen */}
+                <div className="p-8 max-w-5xl mx-auto">
+                    <h1 className="text-3xl font-black text-[#671E75] mb-8">Ventas MoradaUno</h1>
+                    
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                        {[
-                            { n: 'Monse', v: actual.monse },
-                            { n: 'Jess', v: actual.jess },
-                            { n: 'Marla', v: actual.marla }
-                        ].map(user => (
-                            <div key={user.n} className="bg-white p-6 rounded-3xl shadow-sm border border-purple-50">
-                                <p className="text-xs font-black text-gray-400 uppercase tracking-widest">{user.n}</p>
-                                <h3 className="text-2xl font-black text-[#671E75]">${user.v.toLocaleString()}</h3>
-                                <div className="w-full bg-gray-100 h-2 mt-4 rounded-full overflow-hidden">
-                                    <div className="bg-[#00C7B1] h-full" style={{width: '75%'}}></div>
-                                </div>
-                            </div>
-                        ))}
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100">
+                            <p className="text-xs font-bold text-gray-400">MONTSERRAT</p>
+                            <h2 className="text-2xl font-black text-[#671E75]">${data[data.length-1].monse.toLocaleString()}</h2>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100">
+                            <p className="text-xs font-bold text-gray-400">JESSICA</p>
+                            <h2 className="text-2xl font-black text-[#00C7B1]">${data[data.length-1].jess.toLocaleString()}</h2>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-purple-100">
+                            <p className="text-xs font-bold text-gray-400">MARLA</p>
+                            <h2 className="text-2xl font-black text-purple-400">${data[data.length-1].marla.toLocaleString()}</h2>
+                        </div>
                     </div>
 
-                    {/* Gráfica */}
-                    <div className="bg-white p-6 rounded-[30px] shadow-sm border border-purple-50 h-[450px]">
-                        <h2 className="text-xl font-black text-[#671E75] mb-6">Comparativo Mensual</h2>
-                        <ResponsiveContainer width="100%" height="90%">
+                    <div className="bg-white p-6 rounded-3xl shadow-sm h-80">
+                        <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0E6F0" />
-                                <XAxis dataKey="mes" axisLine={false} tickLine={false} tick={{fill: '#671E75', fontWeight: 'bold'}} />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="mes" />
                                 <YAxis hide />
-                                <Tooltip cursor={{fill: '#F8F6F9'}} />
-                                <Bar dataKey="monse" fill="#671E75" radius={[6, 6, 0, 0]} />
-                                <Bar dataKey="jess" fill="#00C7B1" radius={[6, 6, 0, 0]} />
-                                <Bar dataKey="marla" fill="#B14EB5" radius={[6, 6, 0, 0]} />
+                                <Tooltip />
+                                <Bar dataKey="monse" fill="#671E75" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="jess" fill="#00C7B1" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="marla" fill="#B14EB5" radius={[4, 4, 0, 0]} />
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </div>
             );
-        };
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<Dashboard />);
+        root.render(<App />);
     </script>
 </body>
 </html>
