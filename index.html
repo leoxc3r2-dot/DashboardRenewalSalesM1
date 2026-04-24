@@ -3,131 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MoradaUno</title>
+    <title>MoradaUno Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #F8F6F9; font-family: sans-serif; }
-        .card-m { background: white; border-radius: 2rem; box-shadow: 0 10px 30px rgba(103, 30, 117, 0.05); }
-    </style>
 </head>
-<body>
+<body class="bg-[#F8F6F9]">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
         const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
 
         const App = () => {
-            const [data, setData] = useState([]);
-            const [activeMonth, setActiveMonth] = useState("");
-            const [loading, setLoading] = useState(true);
-            const [error, setError] = useState(null);
+            const [data, setData] = React.useState([]);
+            const [activeMonth, setActiveMonth] = React.useState("");
+            const [loading, setLoading] = React.useState(true);
 
-            useEffect(() => {
-                // USAMOS UN PROXY PARA EVITAR EL BLOQUEO (CORS ANYWHERE)
-                const originalUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
-                
-                // Agregamos un timestamp para que no use datos viejos guardados en caché
-                const finalUrl = originalUrl + "&cachebuster=" + new Date().getTime();
+            React.useEffect(() => {
+                // MÉTODO GOOGLE VISUALIZATION (Evita bloqueos de seguridad)
+                const sheetId = '1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq'; // ID de tu hoja
+                const gid = '1811147079';
+                const url = `https://docs.google.com/spreadsheets/d/e/2PACX-${sheetId}/pub?gid=${gid}&single=true&output=csv`;
 
-                Papa.parse(finalUrl, {
-                    download: true,
-                    header: true,
-                    skipEmptyLines: true,
-                    complete: (results) => {
-                        console.log("Columnas detectadas:", Object.keys(results.data[0]));
+                fetch(url)
+                    .then(response => response.text())
+                    .then(csvText => {
+                        const rows = csvText.split('\n').map(row => row.split(','));
+                        const headers = rows[0].map(h => h.trim().replace(/"/g, ''));
                         
-                        const formatted = results.data
-                            .filter(row => row.QMesEquipo)
-                            .map(row => {
-                                const parseN = (v) => v ? parseFloat(String(v).replace(/[^0-9.-]+/g, "")) || 0 : 0;
+                        const jsonData = rows.slice(1).map(row => {
+                            let obj = {};
+                            headers.forEach((header, i) => {
+                                obj[header] = row[i] ? row[i].trim().replace(/"/g, '') : "";
+                            });
+                            return obj;
+                        });
+
+                        const clean = jsonData
+                            .filter(r => r.QMesEquipo)
+                            .map(r => {
+                                const n = (v) => parseFloat(v?.replace(/[^0-9.-]+/g, "")) || 0;
                                 return {
-                                    mes: row.QMesEquipo,
-                                    cantado: parseN(row.CantadoEquipo),
-                                    meta: parseN(row["Meta RevenueEquipo"]),
-                                    alcance: parseN(row["Alcance mesEquipo"]),
-                                    monse: parseN(row["cantadoMonse"]),
-                                    jess: parseN(row["cantadoJess"]),
-                                    marla: parseN(row["cantadoMarla"])
+                                    mes: r.QMesEquipo,
+                                    total: n(r.CantadoEquipo),
+                                    meta: n(r["Meta RevenueEquipo"]),
+                                    alcance: n(r["Alcance mesEquipo"]),
+                                    monse: n(r.cantadoMonse),
+                                    jess: n(r.cantadoJess),
+                                    marla: n(r.cantadoMarla)
                                 };
                             });
 
-                        if (formatted.length > 0) {
-                            setData(formatted);
-                            setActiveMonth(formatted[formatted.length - 1].mes);
-                            setLoading(false);
-                        } else {
-                            setError("El archivo está vacío o las columnas no coinciden.");
-                            setLoading(false);
-                        }
-                    },
-                    error: () => {
-                        setError("Google Sheets rechazó la conexión. Verifica que esté 'Publicado en la Web' como CSV.");
+                        setData(clean);
+                        if(clean.length > 0) setActiveMonth(clean[clean.length-1].mes);
                         setLoading(false);
-                    }
-                });
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        setLoading(false);
+                    });
             }, []);
 
-            if (loading) return (
-                <div className="h-screen flex flex-col items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin mb-4"></div>
-                    <p className="text-purple-800 font-bold">ESTABLECIENDO CONEXIÓN SEGURA...</p>
-                </div>
-            );
-
-            if (error) return (
-                <div className="h-screen flex flex-col items-center justify-center p-10 text-center">
-                    <div className="bg-red-50 p-8 rounded-3xl border border-red-100">
-                        <h2 className="text-red-600 font-black text-2xl mb-2">BLOQUEO DE DATOS</h2>
-                        <p className="text-red-400 text-sm mb-6 max-w-sm">{error}</p>
-                        <button onClick={() => window.location.reload()} className="bg-red-600 text-white px-6 py-2 rounded-full font-bold">Reintentar</button>
-                    </div>
-                </div>
-            );
+            if (loading) return <div className="h-screen flex items-center justify-center font-bold text-purple-800">CONECTANDO CON DATOS...</div>;
+            if (data.length === 0) return <div className="h-screen flex items-center justify-center text-red-500">Error: No se pudieron leer los datos del Excel.</div>;
 
             const current = data.find(d => d.mes === activeMonth) || data[0];
 
             return (
-                <div className="max-w-6xl mx-auto p-4 md:p-8">
-                    <header className="flex justify-between items-center mb-8 bg-white p-6 rounded-[2rem] shadow-sm border border-purple-50">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-[#671E75] text-white w-10 h-10 rounded-xl flex items-center justify-center font-black italic text-xl">M</div>
-                            <h1 className="text-xl font-black text-slate-800 tracking-tight">MoradaUno | <span className="text-teal-500">Renewal</span></h1>
-                        </div>
+                <div className="max-w-5xl mx-auto p-4">
+                    <header className="flex justify-between items-center my-6 bg-white p-4 rounded-2xl shadow-sm">
+                        <h1 className="text-xl font-black text-purple-900 italic">MORADAUNO</h1>
                         <select 
                             value={activeMonth} 
                             onChange={(e) => setActiveMonth(e.target.value)}
-                            className="bg-purple-50 border-none font-bold px-6 py-3 rounded-2xl text-[#671E75] outline-none"
+                            className="bg-purple-50 p-2 rounded-xl font-bold text-purple-700 outline-none"
                         >
                             {data.map(d => <option key={d.mes} value={d.mes}>{d.mes}</option>)}
                         </select>
                     </header>
 
-                    <div className={`p-10 rounded-[3rem] mb-10 transition-all duration-700 text-white shadow-xl ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-[#671E75]'}`}>
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mb-2 opacity-70">Total Cantado Equipo</p>
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                            <h2 className="text-7xl font-black tracking-tighter">${current.cantado?.toLocaleString()}</h2>
-                            <div className="bg-black/10 px-8 py-6 rounded-[2.5rem] text-center min-w-[200px]">
-                                <p className="text-xs font-bold opacity-70 mb-1">ALCANCE</p>
-                                <p className="text-5xl font-black">{current.alcance}%</p>
+                    <div className={`p-8 rounded-[2rem] text-white mb-8 transition-all ${current.alcance >= 100 ? 'bg-teal-500' : 'bg-purple-800'}`}>
+                        <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Total Cantado Equipo</p>
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-5xl font-black">${current.total.toLocaleString()}</h2>
+                            <div className="text-right">
+                                <p className="text-4xl font-black">{current.alcance}%</p>
+                                <p className="text-[10px] opacity-70 font-bold tracking-widest uppercase">Alcance</p>
                             </div>
                         </div>
-                        <p className="mt-6 font-bold opacity-60">META DEL MES: ${current.meta?.toLocaleString()}</p>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div className="lg:col-span-2 card-m p-8 h-80">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-8">Performance</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white p-6 rounded-3xl shadow-sm h-72">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Performance</h3>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={data}>
                                     <XAxis dataKey="mes" hide />
-                                    <Tooltip contentStyle={{borderRadius: '1rem', border: 'none'}} />
-                                    <Bar dataKey="cantado" radius={[10, 10, 0, 0]}>
+                                    <Tooltip />
+                                    <Bar dataKey="total" radius={[5, 5, 0, 0]}>
                                         {data.map((entry, index) => (
                                             <Cell key={index} fill={entry.mes === activeMonth ? '#671E75' : '#E2E8F0'} />
                                         ))}
@@ -136,30 +111,23 @@
                             </ResponsiveContainer>
                         </div>
 
-                        <div className="card-m p-8 flex flex-col items-center">
-                            <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-6 w-full text-left">Mix Comercial</h3>
-                            <div className="h-48 w-full">
-                                <ResponsiveContainer>
-                                    <PieChart>
-                                        <Pie 
-                                            data={[
-                                                { name: 'Monse', value: current.monse },
-                                                { name: 'Jess', value: current.jess },
-                                                { name: 'Marla', value: current.marla }
-                                            ]} 
-                                            dataKey="value" innerRadius={55} outerRadius={75} paddingAngle={8}
-                                        >
-                                            <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
-                            </div>
-                            <div className="flex justify-between w-full mt-4 text-[11px] font-black uppercase italic">
-                                <span className="text-[#671E75]">Monse</span>
-                                <span className="text-teal-500">Jess</span>
-                                <span className="text-purple-400">Marla</span>
-                            </div>
+                        <div className="bg-white p-6 rounded-3xl shadow-sm h-72">
+                            <h3 className="text-xs font-bold text-gray-400 uppercase mb-4 tracking-widest">Mix de Ventas</h3>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie 
+                                        data={[
+                                            { name: 'Monse', value: current.monse },
+                                            { name: 'Jess', value: current.jess },
+                                            { name: 'Marla', value: current.marla }
+                                        ]} 
+                                        dataKey="value" innerRadius={50} outerRadius={70}
+                                    >
+                                        <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
                 </div>
