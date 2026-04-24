@@ -3,37 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard MoradaUno</title>
+    <title>MoradaUno | Dashboard Comercial Premium</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;700;900&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
     <style>
-        body { font-family: 'Figtree', sans-serif; background-color: #F8F6F9; color: #12051A; }
-        .card-morada { background: white; border-radius: 2rem; box-shadow: 0 4px 20px rgba(103, 30, 117, 0.08); border: 1px solid #F1F5F9; }
-        .bg-morada { background-color: #671E75; }
-        .text-morada { color: #671E75; }
+        :root {
+            --morada-purple: #671E75;
+            --morada-teal: #00C7B1;
+            --morada-bg: #F8F6F9;
+        }
+        body { 
+            font-family: 'Figtree', sans-serif; 
+            background-color: var(--morada-bg);
+            color: #12051A;
+        }
+        .card-premium {
+            background: white;
+            border-radius: 2.5rem;
+            border: 1px solid rgba(103, 30, 117, 0.05);
+            box-shadow: 0 10px 25px -5px rgba(103, 30, 117, 0.05);
+        }
+        .shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, #671E75 0%, #8E2B9E 50%, #671E75 100%);
+            background-size: 200% auto;
+        }
+        @keyframes shimmer { to { background-position: 200% center; } }
     </style>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
-        // Acceso seguro a las gráficas
-        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie } = window.Recharts;
+        const { useState, useEffect, useMemo } = React;
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, PieChart, Pie, ReferenceLine, Label } = window.Recharts;
+
+        const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
 
         const App = () => {
-            const [data, setData] = React.useState([]);
-            const [loading, setLoading] = React.useState(true);
-            const [activeMonth, setActiveMonth] = React.useState("");
+            const [data, setData] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [activeMonth, setActiveMonth] = useState("");
 
-            React.useEffect(() => {
-                const url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSCNAHlj6yq9oKNQOJb9F-m1gyEJPIpESd-tWBhBP4o6BzAuqFKyt9Va6Ll7BrzoB7sYaTxeK2dAMaq/pub?gid=1811147079&single=true&output=csv";
-                
-                Papa.parse(url, {
+            useEffect(() => {
+                Papa.parse(GOOGLE_SHEET_URL, {
                     download: true,
                     header: true,
                     complete: (results) => {
@@ -46,7 +67,8 @@
                                 monse: n(row["Monse cantado"]),
                                 jess: n(row["Jess cantado"]),
                                 marla: n(row["Marla cantado"]),
-                                alcance: n(row["Alcance Equipo (Meta)"])
+                                alcance: n(row["Alcance Equipo (Meta)"]),
+                                recuperado: n(row["Recuperado del MesEquipo"])
                             };
                         });
                         setData(clean);
@@ -56,112 +78,142 @@
                 });
             }, []);
 
-            const current = React.useMemo(() => data.find(d => d.name === activeMonth) || {}, [data, activeMonth]);
+            const current = useMemo(() => data.find(d => d.name === activeMonth) || {}, [data, activeMonth]);
 
-            if (loading) return <div className="h-screen flex items-center justify-center text-morada font-black animate-pulse text-xl tracking-widest">CONECTANDO CON DATA...</div>;
+            // Lógica de "Análisis de Peak" del código original
+            const qAnalysis = useMemo(() => {
+                if (data.length === 0) return null;
+                const sorted = [...data].sort((a, b) => b.total - a.total);
+                const avg = data.reduce((acc, curr) => acc + curr.total, 0) / data.length;
+                return {
+                    best: sorted[0].name,
+                    peak: sorted[0].total,
+                    ratio: (((sorted[0].total / avg) - 1) * 100).toFixed(1)
+                };
+            }, [data]);
+
+            if (loading) return (
+                <div className="h-screen flex flex-col items-center justify-center">
+                    <div className="w-16 h-16 border-4 border-purple-200 border-t-purple-700 rounded-full animate-spin mb-4"></div>
+                    <p className="font-black text-purple-800 tracking-widest text-sm uppercase shimmer bg-clip-text text-transparent">Cargando MoradaUno...</p>
+                </div>
+            );
 
             return (
-                <div className="p-4 md:p-8 max-w-7xl mx-auto">
+                <div className="max-w-7xl mx-auto px-4 py-8">
                     {/* Header Institucional */}
-                    <div className="flex flex-col md:flex-row justify-between items-center mb-8 bg-white p-6 rounded-[2.5rem] card-shadow">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-morada rounded-xl flex items-center justify-center text-white font-black text-xl italic shadow-lg shadow-purple-200">M</div>
+                    <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6 bg-white p-6 rounded-[2.5rem] shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-[#671E75] rounded-2xl flex items-center justify-center text-white font-black text-2xl italic shadow-lg shadow-purple-200">M</div>
                             <div>
-                                <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">MoradaUno</h1>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Renewal Sales Dashboard</p>
+                                <h1 className="text-2xl font-[900] text-slate-900 tracking-tight">Ventas <span className="text-[#00C7B1]">Renewal</span></h1>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Dashboard Corporativo 2026</p>
                             </div>
                         </div>
                         <select 
-                            value={activeMonth} 
+                            value={activeMonth}
                             onChange={(e) => setActiveMonth(e.target.value)}
-                            className="bg-slate-50 border-none font-bold px-6 py-3 rounded-2xl text-morada outline-none ring-2 ring-purple-50 focus:ring-purple-200 transition-all cursor-pointer"
+                            className="bg-slate-50 border-none rounded-2xl px-8 py-3 font-black text-[#671E75] ring-2 ring-purple-50 outline-none focus:ring-[#00C7B1] transition-all cursor-pointer shadow-sm"
                         >
                             {data.map(d => <option key={d.name} value={d.name}>{d.name} 2026</option>)}
                         </select>
                     </div>
 
-                    {/* Acumulado Estilo Original */}
-                    <div className={`p-10 rounded-[3rem] mb-8 transition-all duration-500 border-b-8 ${current.alcance >= 100 ? 'bg-[#00C7B1] text-white border-[#009e8d] shadow-xl shadow-teal-100' : 'bg-white border-purple-100'}`}>
-                        <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                            <div className="flex-1 text-center md:text-left">
-                                <p className={`text-[11px] font-black uppercase tracking-[0.2em] mb-2 ${current.alcance >= 100 ? 'text-teal-50' : 'text-slate-400'}`}>Acumulado Total Cantado</p>
-                                <h2 className="text-6xl font-[900] tracking-tighter">${current.total?.toLocaleString()}</h2>
-                                <p className="mt-2 text-sm font-bold opacity-80">Meta Mensual: ${current.meta?.toLocaleString()}</p>
+                    {/* Acumulado Card - Cambia a verde si llega al 100% (Lógica Original) */}
+                    <div className={`p-10 rounded-[3rem] mb-10 transition-all duration-700 border-b-[12px] ${current.alcance >= 100 ? 'bg-[#00C7B1] text-white border-[#00A392] shadow-xl shadow-teal-100' : 'bg-white border-purple-100 shadow-sm'}`}>
+                        <div className="flex flex-col md:flex-row justify-between items-center gap-8">
+                            <div className="flex-1">
+                                <p className={`text-[11px] font-black uppercase tracking-[0.3em] mb-3 ${current.alcance >= 100 ? 'text-teal-50' : 'text-slate-400'}`}>Total Cantado Equipo</p>
+                                <h2 className="text-7xl font-[900] tracking-tighter">${current.total?.toLocaleString()}</h2>
+                                <div className="flex gap-6 mt-4 font-bold opacity-80 text-sm">
+                                    <span>Meta: ${current.meta?.toLocaleString()}</span>
+                                    <span>•</span>
+                                    <span>Recuperado: ${current.recuperado?.toLocaleString()}</span>
+                                </div>
                             </div>
-                            <div className="bg-black/5 p-8 rounded-[2.5rem] backdrop-blur-sm text-center min-w-[200px]">
-                                <p className="text-[10px] font-black uppercase mb-1">Logro Meta</p>
-                                <p className="text-5xl font-black tracking-tighter">{current.alcance}%</p>
+                            <div className="bg-black/5 p-10 rounded-[2.5rem] text-center min-w-[240px] backdrop-blur-md">
+                                <p className="text-[10px] font-black uppercase mb-1 tracking-widest">Alcance Meta</p>
+                                <p className="text-6xl font-[900] tracking-tighter">{current.alcance}%</p>
                             </div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Tendencia Mensual */}
-                        <div className="lg:col-span-2 card-morada p-8">
-                            <h3 className="font-black text-morada text-[11px] uppercase mb-8 tracking-[0.2em]">Tendencia de Ingresos</h3>
-                            <div className="h-80">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-10">
+                        {/* Gráfica de Barras */}
+                        <div className="lg:col-span-2 card-premium p-8">
+                            <h3 className="font-[900] text-[#671E75] text-[11px] uppercase tracking-[0.2em] mb-10">Tendencia Mensual</h3>
+                            <div className="h-[380px]">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <BarChart data={data}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 900, fill: '#94A3B8'}} />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94A3B8', fontWeight: 'bold', fontSize: 11}} />
                                         <YAxis hide />
-                                        <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius: '1rem', border: 'none', boxShadow: '0 10px 15px rgba(0,0,0,0.05)'}} />
+                                        <Tooltip cursor={{fill: '#F8F6F9'}} contentStyle={{borderRadius: '1.5rem', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)'}} />
                                         <Bar dataKey="total" radius={[12, 12, 0, 0]}>
                                             {data.map((entry, index) => (
                                                 <Cell key={index} fill={entry.name === activeMonth ? '#671E75' : '#E2E8F0'} />
                                             ))}
                                         </Bar>
+                                        <ReferenceLine y={current.meta} stroke="#EF4444" strokeDasharray="8 8">
+                                            <Label value="META" position="top" style={{fill: '#EF4444', fontSize: '10px', fontWeight: 900}} />
+                                        </ReferenceLine>
                                     </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
 
-                        {/* Mix por Asesora */}
-                        <div className="card-morada p-8">
-                            <h3 className="font-black text-morada text-[11px] uppercase mb-6 tracking-[0.2em]">Composición Comercial</h3>
-                            <div className="h-60">
-                                <ResponsiveContainer>
-                                    <PieChart>
-                                        <Pie data={[
-                                            { name: 'Monse', value: current.monse },
-                                            { name: 'Jess', value: current.jess },
-                                            { name: 'Marla', value: current.marla }
-                                        ]} innerRadius={55} outerRadius={80} paddingAngle={8} dataKey="value">
-                                            <Cell fill="#671E75" />
-                                            <Cell fill="#00C7B1" />
-                                            <Cell fill="#B14EB5" />
-                                        </Pie>
-                                        <Tooltip />
-                                    </PieChart>
-                                </ResponsiveContainer>
+                        {/* Análisis de Peak y Mix */}
+                        <div className="flex flex-col gap-8">
+                            <div className="bg-[#12051A] text-white p-8 rounded-[3rem] shadow-2xl relative overflow-hidden">
+                                <p className="text-[#C084FC] font-black text-[10px] uppercase tracking-widest mb-4">Análisis de IA (Peak)</p>
+                                <h4 className="text-4xl font-[900] mb-2">${qAnalysis?.peak.toLocaleString()}</h4>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Mes Récord: {qAnalysis?.best}</p>
+                                <div className="mt-8 pt-6 border-t border-white/10 text-xs text-slate-400 leading-relaxed font-medium">
+                                    Varianza positiva del <span className="text-[#00C7B1] font-black">+{qAnalysis?.ratio}%</span> vs el promedio histórico.
+                                </div>
                             </div>
-                            <div className="mt-6 space-y-3">
-                                <div className="flex justify-between text-xs font-black uppercase text-morada"><span>Montserrat</span><span>${current.monse?.toLocaleString()}</span></div>
-                                <div className="flex justify-between text-xs font-black uppercase text-[#00C7B1]"><span>Jessica</span><span>${current.jess?.toLocaleString()}</span></div>
-                                <div className="flex justify-between text-xs font-black uppercase text-purple-400"><span>Marla</span><span>${current.marla?.toLocaleString()}</span></div>
+
+                            <div className="card-premium p-8 flex flex-col items-center flex-1">
+                                <h3 className="font-[900] text-[#671E75] text-[11px] uppercase tracking-[0.2em] mb-6 w-full text-left">Mix Comercial</h3>
+                                <div className="h-52 w-full">
+                                    <ResponsiveContainer>
+                                        <PieChart>
+                                            <Pie data={[
+                                                { name: 'Monse', value: current.monse },
+                                                { name: 'Jess', value: current.jess },
+                                                { name: 'Marla', value: current.marla }
+                                            ]} innerRadius={50} outerRadius={75} paddingAngle={10} dataKey="value">
+                                                <Cell fill="#671E75" /><Cell fill="#00C7B1" /><Cell fill="#C084FC" />
+                                            </Pie>
+                                            <Tooltip />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="w-full space-y-3 mt-6">
+                                    <div className="flex justify-between text-[11px] font-[900] uppercase text-[#671E75]"><span>Montserrat</span><span>${current.monse?.toLocaleString()}</span></div>
+                                    <div className="flex justify-between text-[11px] font-[900] uppercase text-[#00C7B1]"><span>Jessica</span><span>${current.jess?.toLocaleString()}</span></div>
+                                    <div className="flex justify-between text-[11px] font-[900] uppercase text-purple-400"><span>Marla</span><span>${current.marla?.toLocaleString()}</span></div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Pisos de Venta Replicados del original */}
-                    <div className="mt-8 card-morada p-10 overflow-hidden">
-                        <div className="flex justify-between items-center mb-10">
-                            <h3 className="font-black text-morada text-[11px] uppercase tracking-[0.2em]">Análisis de Pisos de Venta</h3>
-                            <span className="text-[10px] font-black bg-purple-50 px-4 py-2 rounded-full text-morada uppercase">Nivel: {current.alcance}%</span>
-                        </div>
-                        <div className="relative pt-2 pb-14">
+                    {/* Pisos de Venta (Lógica del archivo original) */}
+                    <div className="card-premium p-10">
+                        <h3 className="font-[900] text-[#671E75] text-[11px] uppercase tracking-[0.2em] mb-12">Pisos de Venta Institucionales</h3>
+                        <div className="relative pt-4 pb-16 px-4">
                             <div className="h-4 bg-slate-100 rounded-full w-full absolute shadow-inner"></div>
-                            <div className="h-4 bg-morada rounded-full absolute transition-all duration-1000 shadow-lg shadow-purple-200" style={{ width: `${Math.min(100, (current.total / (current.meta * 1.51)) * 100)}%` }}></div>
+                            <div className="h-4 shimmer rounded-full absolute transition-all duration-1000 shadow-lg shadow-purple-100" style={{ width: `${Math.min(100, (current.total / (current.meta * 1.51)) * 100)}%` }}></div>
                             
-                            <div className="relative flex justify-between mt-10">
+                            <div className="relative flex justify-between mt-12">
                                 {[60, 101, 121, 151].map(p => {
-                                    const montoPiso = current.meta * p/100;
-                                    const alcanzado = current.total >= montoPiso;
+                                    const montoPiso = current.meta * (p/100);
+                                    const logrado = current.total >= montoPiso;
                                     return (
                                         <div key={p} className="flex flex-col items-center">
-                                            <div className={`w-5 h-5 rounded-full border-4 border-white shadow-md transition-all duration-500 ${alcanzado ? 'bg-morada scale-125' : 'bg-slate-200'}`}></div>
-                                            <span className={`text-[12px] font-black mt-3 ${alcanzado ? 'text-morada' : 'text-slate-300'}`}>{p}%</span>
-                                            <span className="text-[10px] font-bold text-slate-300 tracking-tighter">${montoPiso.toLocaleString()}</span>
+                                            <div className={`w-6 h-6 rounded-full border-4 border-white shadow-md transition-all duration-700 ${logrado ? 'bg-[#671E75] scale-125' : 'bg-slate-200'}`}></div>
+                                            <span className={`text-[13px] font-[900] mt-4 ${logrado ? 'text-[#671E75]' : 'text-slate-300'}`}>{p}%</span>
+                                            <span className="text-[10px] font-bold text-slate-300">${montoPiso.toLocaleString()}</span>
                                         </div>
                                     );
                                 })}
